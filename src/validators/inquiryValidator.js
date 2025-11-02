@@ -14,7 +14,7 @@ const createInquirySchema = Joi.object({
 
   phone: Joi.string()
     .trim()
-    .pattern(/^[\+]?[1-9][\d]{0,15}$/)
+    .pattern(/^[+]?[1-9][\d]{0,15}$/)
     .optional()
     .messages({
       "string.pattern.base": "Please provide a valid phone number",

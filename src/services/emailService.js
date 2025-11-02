@@ -1,12 +1,12 @@
-const nodemailer = require('nodemailer');
-const logger = require('../utils/logger');
+const nodemailer = require("nodemailer");
+const logger = require("../utils/logger");
 
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === 'true',
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -14,11 +14,11 @@ class EmailService {
     });
 
     // Verify connection configuration
-    this.transporter.verify((error, success) => {
+    this.transporter.verify((error, _success) => {
       if (error) {
-        logger.error('SMTP connection error:', error);
+        logger.error("SMTP connection error:", error);
       } else {
-        logger.info('SMTP server is ready to take our messages');
+        logger.info("SMTP server is ready to take our messages");
       }
     });
   }
@@ -27,7 +27,7 @@ class EmailService {
   async sendInquiryConfirmation(inquiry) {
     try {
       const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || 'DataScube'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: inquiry.email,
         subject: `Thank you for contacting us - Inquiry #${inquiry._id.toString().slice(-6)}`,
         html: this.generateConfirmationEmailTemplate(inquiry),
@@ -35,10 +35,13 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`Confirmation email sent to ${inquiry.email}:`, result.messageId);
+      logger.info(
+        `Confirmation email sent to ${inquiry.email}:`,
+        result.messageId
+      );
       return result;
     } catch (error) {
-      logger.error('Error sending confirmation email:', error);
+      logger.error("Error sending confirmation email:", error);
       throw error;
     }
   }
@@ -48,12 +51,12 @@ class EmailService {
     try {
       const adminEmail = process.env.ADMIN_EMAIL;
       if (!adminEmail) {
-        logger.warn('Admin email not configured, skipping notification');
+        logger.warn("Admin email not configured, skipping notification");
         return;
       }
 
       const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || 'DataScube'}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: adminEmail,
         subject: `New Inquiry Received - ${inquiry.inquiryType.toUpperCase()} - Priority: ${inquiry.priority.toUpperCase()}`,
         html: this.generateAdminNotificationTemplate(inquiry),
@@ -64,7 +67,7 @@ class EmailService {
       logger.info(`Admin notification sent:`, result.messageId);
       return result;
     } catch (error) {
-      logger.error('Error sending admin notification:', error);
+      logger.error("Error sending admin notification:", error);
       throw error;
     }
   }
@@ -149,19 +152,19 @@ class EmailService {
                 <ul>
                     <li>Our team will review your inquiry within 24 hours</li>
                     <li>You'll receive updates via email at ${inquiry.email}</li>
-                    <li>For urgent matters, you can call us at ${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}</li>
+                    <li>For urgent matters, you can call us at ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}</li>
                 </ul>
                 
                 <p>If you have any additional information or questions, please don't hesitate to contact us.</p>
                 
                 <p>Best regards,<br>
-                <strong>${process.env.COMPANY_NAME || 'DataScube'} Team</strong></p>
+                <strong>${process.env.COMPANY_NAME || "DataScube"} Team</strong></p>
             </div>
             
             <div class="footer">
-                <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'DataScube'}. All rights reserved.</p>
-                <p>${process.env.COMPANY_ADDRESS || 'Your Company Address'}</p>
-                <p>Email: ${process.env.COMPANY_EMAIL || 'info@datascube.com'} | Phone: ${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}</p>
+                <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || "DataScube"}. All rights reserved.</p>
+                <p>${process.env.COMPANY_ADDRESS || "Your Company Address"}</p>
+                <p>Email: ${process.env.COMPANY_EMAIL || "info@datascube.com"} | Phone: ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}</p>
             </div>
         </div>
     </body>
@@ -174,7 +177,7 @@ class EmailService {
     return `
 Dear ${inquiry.name},
 
-Thank you for contacting ${process.env.COMPANY_NAME || 'DataScube'}!
+Thank you for contacting ${process.env.COMPANY_NAME || "DataScube"}!
 
 We have received your inquiry and will get back to you soon.
 
@@ -192,13 +195,13 @@ ${inquiry.message}
 What happens next?
 - Our team will review your inquiry within 24 hours
 - You'll receive updates via email at ${inquiry.email}
-- For urgent matters, call us at ${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}
+- For urgent matters, call us at ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}
 
 Best regards,
-${process.env.COMPANY_NAME || 'DataScube'} Team
+${process.env.COMPANY_NAME || "DataScube"} Team
 
-${process.env.COMPANY_EMAIL || 'info@datascube.com'}
-${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}
+${process.env.COMPANY_EMAIL || "info@datascube.com"}
+${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}
     `;
   }
 
@@ -227,13 +230,13 @@ ${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}
                 <div class="detail"><span class="label">ID:</span> #${inquiry._id.toString().slice(-6)}</div>
                 <div class="detail"><span class="label">Name:</span> ${inquiry.name}</div>
                 <div class="detail"><span class="label">Email:</span> ${inquiry.email}</div>
-                <div class="detail"><span class="label">Phone:</span> ${inquiry.phone || 'Not provided'}</div>
-                <div class="detail"><span class="label">Company:</span> ${inquiry.company || 'Not provided'}</div>
+                <div class="detail"><span class="label">Phone:</span> ${inquiry.phone || "Not provided"}</div>
+                <div class="detail"><span class="label">Company:</span> ${inquiry.company || "Not provided"}</div>
                 <div class="detail"><span class="label">Subject:</span> ${inquiry.subject}</div>
                 <div class="detail"><span class="label">Type:</span> ${inquiry.inquiryType}</div>
                 <div class="detail"><span class="label">Priority:</span> <span class="priority-${inquiry.priority}">${inquiry.priority.toUpperCase()}</span></div>
                 <div class="detail"><span class="label">Source:</span> ${inquiry.source}</div>
-                <div class="detail"><span class="label">IP Address:</span> ${inquiry.ipAddress || 'Unknown'}</div>
+                <div class="detail"><span class="label">IP Address:</span> ${inquiry.ipAddress || "Unknown"}</div>
                 <div class="detail"><span class="label">Submitted:</span> ${new Date(inquiry.createdAt).toLocaleString()}</div>
                 
                 <h3>Message:</h3>
@@ -249,18 +252,18 @@ ${process.env.COMPANY_PHONE || '+1 (555) 123-4567'}
 
   generateAdminNotificationText(inquiry) {
     return `
-New Inquiry Alert - ${process.env.COMPANY_NAME || 'DataScube'}
+New Inquiry Alert - ${process.env.COMPANY_NAME || "DataScube"}
 
 ID: #${inquiry._id.toString().slice(-6)}
 Name: ${inquiry.name}
 Email: ${inquiry.email}
-Phone: ${inquiry.phone || 'Not provided'}
-Company: ${inquiry.company || 'Not provided'}
+Phone: ${inquiry.phone || "Not provided"}
+Company: ${inquiry.company || "Not provided"}
 Subject: ${inquiry.subject}
 Type: ${inquiry.inquiryType}
 Priority: ${inquiry.priority.toUpperCase()}
 Source: ${inquiry.source}
-IP Address: ${inquiry.ipAddress || 'Unknown'}
+IP Address: ${inquiry.ipAddress || "Unknown"}
 Submitted: ${new Date(inquiry.createdAt).toLocaleString()}
 
 Message:
@@ -272,22 +275,22 @@ Action Required: Please review and respond to this inquiry promptly.
 
   getPriorityColor(priority) {
     const colors = {
-      low: '#28a745',
-      medium: '#ffc107',
-      high: '#fd7e14',
-      urgent: '#dc3545',
+      low: "#28a745",
+      medium: "#ffc107",
+      high: "#fd7e14",
+      urgent: "#dc3545",
     };
-    return colors[priority] || '#6c757d';
+    return colors[priority] || "#6c757d";
   }
 
   getPriorityTextColor(priority) {
     const colors = {
-      low: '#28a745',
-      medium: '#856404',
-      high: '#fd7e14',
-      urgent: '#dc3545',
+      low: "#28a745",
+      medium: "#856404",
+      high: "#fd7e14",
+      urgent: "#dc3545",
     };
-    return colors[priority] || '#6c757d';
+    return colors[priority] || "#6c757d";
   }
 }
 
