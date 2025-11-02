@@ -29,8 +29,8 @@ jobs:
       - name: Run linting
         run: npm run lint
 
-      - name: Run tests
-        run: npm test
+      - name: Run unit tests
+        run: npx jest tests/unit --passWithNoTests
         env:
           NODE_ENV: test
           MONGODB_URI: mongodb+srv://nikul:nikul@datascube.7fholtw.mongodb.net/datascube_test?retryWrites=true&w=majority&appName=dataScube

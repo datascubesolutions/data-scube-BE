@@ -1,11 +1,34 @@
-// Test setup file
-process.env.NODE_ENV = "test";
-process.env.JWT_SECRET = "test-secret-key";
-process.env.MONGODB_URI = "mongodb://localhost:27017/datascube_test";
+const mongoose = require("mongoose");
 
-// Suppress console logs during tests
-if (process.env.NODE_ENV === "test") {
-  console.log = jest.fn();
-  console.error = jest.fn();
-  console.warn = jest.fn();
-}
+// Mock email service to prevent SMTP connections during tests
+jest.mock("../src/services/emailService", () => ({
+  sendInquiryConfirmation: jest
+    .fn()
+    .mockResolvedValue({ messageId: "test-message-id" }),
+  sendAdminNotification: jest
+    .fn()
+    .mockResolvedValue({ messageId: "test-admin-message-id" }),
+}));
+
+// Set test environment variables
+process.env.NODE_ENV = "test";
+process.env.JWT_SECRET = "test-jwt-secret";
+process.env.LOG_LEVEL = "error";
+
+// Increase timeout for database operations
+jest.setTimeout(30000);
+
+// Global test setup
+beforeAll(async () => {
+  // Close any existing connections
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+});
+
+afterAll(async () => {
+  // Clean up after all tests
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+});

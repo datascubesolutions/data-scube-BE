@@ -29,3 +29,8 @@
 {"level":"info","message":"Confirmation email sent for inquiry 69064be208b1680ee3fcd6dd","service":"datascube-api","timestamp":"2025-11-01 23:35:25"}
 {"level":"info","message":"Admin notification sent:","service":"datascube-api","timestamp":"2025-11-01 23:35:26"}
 {"level":"info","message":"Admin notification sent for inquiry 69064be208b1680ee3fcd6dd","service":"datascube-api","timestamp":"2025-11-01 23:35:26"}
+{"level":"info","message":"SMTP server is ready to take our messages","service":"datascube-api","timestamp":"2025-11-02 11:26:59"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [02/Nov/2025:05:57:16 +0000] \"GET /api/health HTTP/1.1\" 503 235 \"-\" \"-\"","service":"datascube-api","timestamp":"2025-11-02 11:27:16"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [02/Nov/2025:05:57:16 +0000] \"GET /api/health/ready HTTP/1.1\" 503 89 \"-\" \"-\"","service":"datascube-api","timestamp":"2025-11-02 11:27:16"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [02/Nov/2025:05:57:16 +0000] \"GET /api/health/live HTTP/1.1\" 200 84 \"-\" \"-\"","service":"datascube-api","timestamp":"2025-11-02 11:27:16"}
+{"level":"info","message":"SMTP server is ready to take our messages","service":"datascube-api","timestamp":"2025-11-02 11:27:28"}
