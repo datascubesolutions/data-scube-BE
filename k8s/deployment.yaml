@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datascube-api
+  labels:
+    app: datascube-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: datascube-api
+  template:
+    metadata:
+      labels:
+        app: datascube-api
+    spec:
+      containers:
+        - name: datascube-api
+          image: ghcr.io/your-username/datascube:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: mongodb-uri
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: jwt-secret
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: smtp-user
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: smtp-pass
+          livenessProbe:
+            httpGet:
+              path: /api/health/live
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: datascube-api-service
+spec:
+  selector:
+    app: datascube-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: datascube-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - hosts:
+        - api.datascube.com
+      secretName: datascube-tls
+  rules:
+    - host: api.datascube.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datascube-api-service
+                port:
+                  number: 80
