@@ -1,4 +1,4 @@
-name: Docker Build and Push
+name: CI/CD Pipeline
 
 on:
   push:
@@ -13,6 +13,20 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: password
+        ports:
+          - 27017:27017
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
 
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +57,7 @@ jobs:
           MAIL_USER: apptestnodemailer730@gmail.com
           MAIL_PASS: uajw muti dajb voyc
           FROM_EMAIL: apptestnodemailer730@gmail.com
+          REDIS_URL: redis://localhost:6379
           LOG_LEVEL: error
           RATE_LIMIT_WINDOW_MS: 900000
           RATE_LIMIT_MAX_REQUESTS: 100
@@ -85,8 +100,41 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Image built successfully
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging
         run: |
-          echo "✅ Docker image built and pushed successfully!"
-          echo "🐳 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          echo "📦 You can now deploy this image to your server"
+          echo "Deploy to staging environment"
+          # Add your staging deployment commands here
+
+  deploy-production:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Deploy to Kubernetes
+        run: |
+          export KUBECONFIG=kubeconfig
+          kubectl set image deployment/datascube-api datascube-api=ghcr.io/datascubesolutions/data-scube-be:${{ github.sha }}
+          kubectl rollout status deployment/datascube-api
