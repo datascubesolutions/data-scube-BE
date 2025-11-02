@@ -77,6 +77,15 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
 
+      - name: Debug - List files
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files in current directory:"
+          ls -la
+          echo "Checking for Dockerfile:"
+          ls -la Dockerfile || echo "Dockerfile not found"
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
