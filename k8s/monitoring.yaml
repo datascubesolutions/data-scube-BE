@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: datascube-api-monitor
+  labels:
+    app: datascube-api
+spec:
+  selector:
+    matchLabels:
+      app: datascube-api
+  endpoints:
+    - port: http
+      path: /api/health
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: datascube-api-alerts
+  labels:
+    app: datascube-api
+spec:
+  groups:
+    - name: datascube-api
+      rules:
+        - alert: DatascubeAPIDown
+          expr: up{job="datascube-api"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Datascube API is down"
+            description: "Datascube API has been down for more than 1 minute"
+
+        - alert: DatascubeAPIHighErrorRate
+          expr: rate(http_requests_total{job="datascube-api",status=~"5.."}[5m]) > 0.1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate in Datascube API"
+            description: "Error rate is {{ $value }} errors per second"
+
+        - alert: DatascubeAPIHighLatency
+          expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="datascube-api"}[5m])) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High latency in Datascube API"
+            description: "95th percentile latency is {{ $value }} seconds"

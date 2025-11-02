@@ -14,6 +14,10 @@
     "prepare": "husky install",
     "docker:build": "docker build -t datascube-api .",
     "docker:run": "docker run -p 3000:3000 --env-file .env datascube-api",
+    "docker:push": "docker push ghcr.io/datascubesolutions/data-scube-be:latest",
+    "k8s:deploy": "./scripts/deploy.sh",
+    "k8s:logs": "kubectl logs -f deployment/datascube-api",
+    "k8s:status": "kubectl get pods -l app=datascube-api",
     "health": "curl -f http://localhost:3000/api/health || exit 1"
   },
   "keywords": [

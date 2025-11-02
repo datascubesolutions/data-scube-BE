@@ -16,12 +16,25 @@ spec:
     spec:
       containers:
         - name: datascube-api
-          image: ghcr.io/your-username/datascube:latest
+          image: ghcr.io/datascubesolutions/data-scube-be:latest
           ports:
             - containerPort: 3000
           env:
             - name: NODE_ENV
-              value: 'production'
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: NODE_ENV
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: PORT
+            - name: API_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: API_VERSION
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -32,6 +45,18 @@ spec:
                 secretKeyRef:
                   name: datascube-secrets
                   key: jwt-secret
+            - name: JWT_EXPIRES_IN
+              value: "24h"
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: smtp-host
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: smtp-port
             - name: SMTP_USER
               valueFrom:
                 secretKeyRef:
@@ -42,6 +67,71 @@ spec:
                 secretKeyRef:
                   name: datascube-secrets
                   key: smtp-pass
+            - name: MAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: mail-user
+            - name: MAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: mail-pass
+            - name: FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: from-email
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: datascube-secrets
+                  key: redis-url
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: LOG_LEVEL
+            - name: LOG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: LOG_FILE
+            - name: ERROR_LOG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: ERROR_LOG_FILE
+            - name: RATE_LIMIT_WINDOW_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: RATE_LIMIT_WINDOW_MS
+            - name: RATE_LIMIT_MAX_REQUESTS
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: RATE_LIMIT_MAX_REQUESTS
+            - name: BCRYPT_ROUNDS
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: BCRYPT_ROUNDS
+            - name: HEALTH_CHECK_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: HEALTH_CHECK_TIMEOUT
+            - name: MAX_FILE_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: MAX_FILE_SIZE
+            - name: UPLOAD_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: datascube-config
+                  key: UPLOAD_PATH
           livenessProbe:
             httpGet:
               path: /api/health/live
@@ -56,11 +146,11 @@ spec:
             periodSeconds: 5
           resources:
             requests:
-              memory: '256Mi'
-              cpu: '250m'
+              memory: "256Mi"
+              cpu: "250m"
             limits:
-              memory: '512Mi'
-              cpu: '500m'
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
