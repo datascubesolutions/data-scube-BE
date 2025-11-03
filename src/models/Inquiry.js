@@ -67,6 +67,13 @@ const inquirySchema = new mongoose.Schema(
     emailSentAt: {
       type: Date,
     },
+    isWhatsAppSent: {
+      type: Boolean,
+      default: false,
+    },
+    whatsAppSentAt: {
+      type: Date,
+    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

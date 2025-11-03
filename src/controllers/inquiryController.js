@@ -1,5 +1,6 @@
 const Inquiry = require("../models/Inquiry");
 const emailService = require("../services/emailService");
+const whatsappService = require("../services/whatsappService");
 const logger = require("../utils/logger");
 const {
   createInquirySchema,
@@ -48,6 +49,26 @@ class InquiryController {
         }
       });
 
+      // Send WhatsApp thank you message (if phone number provided)
+      if (inquiry.phone) {
+        setImmediate(async () => {
+          try {
+            await whatsappService.sendThankYouMessage(inquiry);
+            inquiry.isWhatsAppSent = true;
+            inquiry.whatsAppSentAt = new Date();
+            await inquiry.save();
+            logger.info(
+              `WhatsApp thank you message sent for inquiry ${inquiry._id}`
+            );
+          } catch (whatsappError) {
+            logger.error(
+              `Failed to send WhatsApp message for inquiry ${inquiry._id}:`,
+              whatsappError
+            );
+          }
+        });
+      }
+
       // Send notification to admin
       setImmediate(async () => {
         try {
@@ -57,6 +78,21 @@ class InquiryController {
           logger.error(
             `Failed to send admin notification for inquiry ${inquiry._id}:`,
             emailError
+          );
+        }
+      });
+
+      // Send WhatsApp notification to admin
+      setImmediate(async () => {
+        try {
+          await whatsappService.sendAdminNotification(inquiry);
+          logger.info(
+            `WhatsApp admin notification sent for inquiry ${inquiry._id}`
+          );
+        } catch (whatsappError) {
+          logger.error(
+            `Failed to send WhatsApp admin notification for inquiry ${inquiry._id}:`,
+            whatsappError
           );
         }
       });
