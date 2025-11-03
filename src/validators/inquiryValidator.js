@@ -1,6 +1,7 @@
 const Joi = require("joi");
 
 const createInquirySchema = Joi.object({
+  // Required fields
   name: Joi.string().trim().min(2).max(100).required().messages({
     "string.empty": "Name is required",
     "string.min": "Name must be at least 2 characters long",
@@ -15,30 +16,43 @@ const createInquirySchema = Joi.object({
   phone: Joi.string()
     .trim()
     .pattern(/^[+]?[1-9][\d]{0,15}$/)
-    .optional()
+    .required()
     .messages({
+      "string.empty": "Phone number is required",
       "string.pattern.base": "Please provide a valid phone number",
     }),
 
-  company: Joi.string().trim().max(200).optional().messages({
+  company: Joi.string().trim().max(200).required().messages({
+    "string.empty": "Company is required",
     "string.max": "Company name cannot exceed 200 characters",
   }),
 
-  subject: Joi.string().trim().min(5).max(200).required().messages({
-    "string.empty": "Subject is required",
-    "string.min": "Subject must be at least 5 characters long",
-    "string.max": "Subject cannot exceed 200 characters",
-  }),
-
-  message: Joi.string().trim().min(10).max(2000).required().messages({
+  message: Joi.string().trim().min(1).max(2000).required().messages({
     "string.empty": "Message is required",
-    "string.min": "Message must be at least 10 characters long",
+    "string.min": "Message is required",
     "string.max": "Message cannot exceed 2000 characters",
   }),
 
   inquiryType: Joi.string()
-    .valid("general", "support", "sales", "partnership", "technical")
-    .default("general"),
+    .valid(
+      "general",
+      "support",
+      "sales",
+      "partnership",
+      "technical",
+      "erp-solutions"
+    )
+    .required()
+    .messages({
+      "string.empty": "Inquiry type is required",
+      "any.only": "Invalid inquiry type",
+    }),
+
+  // Optional fields
+  subject: Joi.string().trim().min(5).max(200).optional().messages({
+    "string.min": "Subject must be at least 5 characters long",
+    "string.max": "Subject cannot exceed 200 characters",
+  }),
 
   priority: Joi.string()
     .valid("low", "medium", "high", "urgent")
@@ -80,7 +94,14 @@ const queryInquirySchema = Joi.object({
     .optional(),
 
   inquiryType: Joi.string()
-    .valid("general", "support", "sales", "partnership", "technical")
+    .valid(
+      "general",
+      "support",
+      "sales",
+      "partnership",
+      "technical",
+      "erp-solutions"
+    )
     .optional(),
 
   priority: Joi.string().valid("low", "medium", "high", "urgent").optional(),

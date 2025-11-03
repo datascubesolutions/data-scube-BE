@@ -34,3 +34,7 @@
 {"level":"info","message":"::ffff:127.0.0.1 - - [02/Nov/2025:05:57:16 +0000] \"GET /api/health/ready HTTP/1.1\" 503 89 \"-\" \"-\"","service":"datascube-api","timestamp":"2025-11-02 11:27:16"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [02/Nov/2025:05:57:16 +0000] \"GET /api/health/live HTTP/1.1\" 200 84 \"-\" \"-\"","service":"datascube-api","timestamp":"2025-11-02 11:27:16"}
 {"level":"info","message":"SMTP server is ready to take our messages","service":"datascube-api","timestamp":"2025-11-02 11:27:28"}
+{"level":"info","message":"Connected to MongoDB successfully","service":"datascube-api","timestamp":"2025-11-04 00:48:44"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-04 00:48:44"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-04 00:48:44"}
+{"level":"info","message":"SMTP server is ready to take our messages","service":"datascube-api","timestamp":"2025-11-04 00:48:51"}

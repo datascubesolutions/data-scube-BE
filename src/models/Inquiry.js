@@ -20,17 +20,18 @@ const inquirySchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      required: [true, "Phone number is required"],
       trim: true,
       match: [/^[+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
     },
     company: {
       type: String,
+      required: [true, "Company is required"],
       trim: true,
       maxlength: [200, "Company name cannot exceed 200 characters"],
     },
     subject: {
       type: String,
-      required: [true, "Subject is required"],
       trim: true,
       maxlength: [200, "Subject cannot exceed 200 characters"],
     },
@@ -42,8 +43,15 @@ const inquirySchema = new mongoose.Schema(
     },
     inquiryType: {
       type: String,
-      enum: ["general", "support", "sales", "partnership", "technical"],
-      default: "general",
+      required: [true, "Inquiry type is required"],
+      enum: [
+        "general",
+        "support",
+        "sales",
+        "partnership",
+        "technical",
+        "erp-solutions",
+      ],
     },
     status: {
       type: String,
