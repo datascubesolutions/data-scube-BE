@@ -28,26 +28,10 @@ app.use(
   })
 );
 
-// CORS configuration
+// CORS configuration - Allow all origins for now
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      const allowedOrigins = [
-        "https://tourmaline-concha-dcdeb2.netlify.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        logger.warn(`CORS blocked origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // Allow all origins
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
