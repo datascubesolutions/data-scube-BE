@@ -22,14 +22,32 @@ const logger = require("./utils/logger");
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// CORS configuration
 app.use(
   cors({
-    origin: [
-      "https://tourmaline-concha-dcdeb2.netlify.app",
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        "https://tourmaline-concha-dcdeb2.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+      ];
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        logger.warn(`CORS blocked origin: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
@@ -38,12 +56,32 @@ app.use(
       "Accept",
       "Origin",
       "X-Requested-With",
+      "sec-ch-ua",
+      "sec-ch-ua-mobile",
+      "sec-ch-ua-platform",
+      "User-Agent",
+      "Referer",
     ],
-    exposedHeaders: ["Content-Length", "X-Foo", "X-Bar"],
+    exposedHeaders: ["Content-Length"],
     preflightContinue: false,
     optionsSuccessStatus: 200,
   })
 );
+
+// Manual OPTIONS handler for additional safety
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type,Authorization,Accept,Origin,X-Requested-With"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(200);
+});
 
 // Rate limiting
 const limiter = rateLimit({

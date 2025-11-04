@@ -40,7 +40,8 @@ const createInquirySchema = Joi.object({
       "sales",
       "partnership",
       "technical",
-      "erp-solutions"
+      "erp-solutions",
+      "other"
     )
     .required()
     .messages({
@@ -100,7 +101,8 @@ const queryInquirySchema = Joi.object({
       "sales",
       "partnership",
       "technical",
-      "erp-solutions"
+      "erp-solutions",
+      "other"
     )
     .optional(),
 
