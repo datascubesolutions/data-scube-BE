@@ -25,10 +25,14 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || [
+    origin: [
+      "https://tourmaline-concha-dcdeb2.netlify.app",
       "http://localhost:3000",
+      "http://localhost:3001",
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   })
 );
 
