@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CORS Test - DataScube API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 CORS Test for DataScube API</h1>
+    <p>
+      This page tests CORS configuration for the DataScube API from the Netlify
+      domain.
+    </p>
+
+    <div class="test-section">
+      <h3>API Base URL</h3>
+      <input
+        type="text"
+        id="apiUrl"
+        value="https://data-scube-be.onrender.com"
+        style="width: 400px; padding: 5px"
+      />
+      <button onclick="updateApiUrl()">Update URL</button>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 1: Health Check (GET)</h3>
+      <button onclick="testHealthCheck()">Test Health Check</button>
+      <div id="healthResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 2: Create Inquiry (POST)</h3>
+      <button onclick="testCreateInquiry()">Test Create Inquiry</button>
+      <div id="inquiryResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test 3: WhatsApp Test (POST)</h3>
+      <button onclick="testWhatsApp()">Test WhatsApp</button>
+      <div id="whatsappResult"></div>
+    </div>
+
+    <script>
+      let API_BASE_URL = "https://data-scube-be.onrender.com";
+
+      function updateApiUrl() {
+        API_BASE_URL = document.getElementById("apiUrl").value;
+        console.log("Updated API URL to:", API_BASE_URL);
+      }
+
+      function displayResult(elementId, success, data) {
+        const element = document.getElementById(elementId);
+        element.className = success ? "success" : "error";
+        element.innerHTML = `
+                <h4>${success ? "✅ Success" : "❌ Error"}</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+      }
+
+      async function testHealthCheck() {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/health`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          const data = await response.json();
+          displayResult("healthResult", response.ok, {
+            status: response.status,
+            statusText: response.statusText,
+            data: data,
+          });
+        } catch (error) {
+          displayResult("healthResult", false, {
+            error: error.message,
+            type: error.name,
+          });
+        }
+      }
+
+      async function testCreateInquiry() {
+        const testPayload = {
+          name: "Test User",
+          email: "test@example.com",
+          phone: "1234567890",
+          company: "Test Company",
+          message: "This is a test inquiry from CORS test page",
+          inquiryType: "general",
+        };
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/inquiries`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(testPayload),
+          });
+
+          const data = await response.json();
+          displayResult("inquiryResult", response.ok, {
+            status: response.status,
+            statusText: response.statusText,
+            data: data,
+          });
+        } catch (error) {
+          displayResult("inquiryResult", false, {
+            error: error.message,
+            type: error.name,
+          });
+        }
+      }
+
+      async function testWhatsApp() {
+        const testPayload = {
+          phoneNumber: "917300340014",
+          message: "Test message from CORS test page",
+        };
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/test-whatsapp/send-test`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(testPayload),
+            }
+          );
+
+          const data = await response.json();
+          displayResult("whatsappResult", response.ok, {
+            status: response.status,
+            statusText: response.statusText,
+            data: data,
+          });
+        } catch (error) {
+          displayResult("whatsappResult", false, {
+            error: error.message,
+            type: error.name,
+          });
+        }
+      }
+
+      // Auto-test health check on page load
+      window.onload = function () {
+        console.log("🚀 CORS Test Page Loaded");
+        console.log("Current origin:", window.location.origin);
+        console.log("API Base URL:", API_BASE_URL);
+      };
+    </script>
+  </body>
+</html>
