@@ -5,6 +5,13 @@ const logger = require("./utils/logger");
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+// Validate required environment variables
+if (!MONGODB_URI) {
+  console.error("❌ MONGODB_URI environment variable is required");
+  logger.error(JSON.stringify({ message: "MONGODB_URI environment variable is required" }));
+  process.exit(1);
+}
+
 // Connect to MongoDB
 mongoose
   .connect(MONGODB_URI)
@@ -44,6 +51,6 @@ mongoose
   })
   .catch((error) => {
     console.error("❌ DB Connection Failed:", error.message);
-    logger.error("MongoDB connection error:", error);
+    logger.error(JSON.stringify({ message: "MongoDB connection error", error: error.message, code: error.code }));
     process.exit(1);
   });
