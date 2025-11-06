@@ -62,3 +62,38 @@
 {"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-06 23:52:47"}
 {"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-06 23:52:47"}
 {"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-06 23:52:47"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:03:39"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:03:40"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:03:40"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:03:40"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:04:09"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:04:09"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:04:09"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:04:09"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:04:22"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:04:38"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:04:39"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:04:39"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:04:39"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:05:05"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:05:05"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:05:05"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:05:05"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:05:09"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:05:29"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:05:29"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:05:29"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:05:29"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:05:33"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:06:12"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:06:12"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:06:12"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:06:12"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:06:29"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:06:29"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:06:29"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:06:29"}
+{"level":"warn","message":"SMTP not configured - email functionality will be disabled","service":"datascube-api","timestamp":"2025-11-07 00:06:30"}
+{"level":"warn","message":"MONGODB_URI environment variable is not set","service":"datascube-api","timestamp":"2025-11-07 00:06:30"}
+{"level":"info","message":"Server running on port 3000","service":"datascube-api","timestamp":"2025-11-07 00:06:30"}
+{"level":"info","message":"Environment: development","service":"datascube-api","timestamp":"2025-11-07 00:06:30"}

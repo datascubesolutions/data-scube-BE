@@ -30,20 +30,8 @@ try {
 
 const app = express();
 
-// CORS must be applied before other middleware for preflight requests
-// But we'll apply it after helmet with proper configuration
-
-// Security middleware - Configured to work with CORS
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginEmbedderPolicy: false, // Allow embedding
-    referrerPolicy: { policy: "no-referrer-when-downgrade" }, // Less strict for CORS
-    contentSecurityPolicy: false, // Disable CSP to avoid CORS conflicts
-  })
-);
-
-// CORS configuration
+// CORS configuration - MUST be applied FIRST, before any other middleware
+// This ensures preflight OPTIONS requests are handled correctly
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
   : [
@@ -56,7 +44,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "https://data-scube-solutions.vercel.app",
     ];
 
-// CORS configuration function
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, Postman, server-to-server)
@@ -95,7 +82,6 @@ const corsOptions = {
     "sec-ch-ua-platform",
     "User-Agent",
     "Referer",
-    "X-Requested-With",
   ],
   exposedHeaders: ["Content-Length", "Content-Type"],
   preflightContinue: false,
@@ -103,9 +89,18 @@ const corsOptions = {
   maxAge: 86400, // 24 hours - cache preflight requests
 };
 
-// Apply CORS middleware
-// This automatically handles OPTIONS preflight requests for all routes
+// Apply CORS FIRST - before any other middleware
 app.use(cors(corsOptions));
+
+// Security middleware - Configured to work with CORS
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false, // Allow embedding
+    referrerPolicy: { policy: "no-referrer-when-downgrade" }, // Less strict for CORS
+    contentSecurityPolicy: false, // Disable CSP to avoid CORS conflicts
+  })
+);
 
 // Manual CORS headers middleware to ensure headers are always set
 // This runs after cors() middleware as a backup to ensure headers are present
@@ -153,17 +148,75 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Compression and logging
+// Compression
 app.use(compression());
+
+// Body parsing middleware (must be before morgan to log request bodies)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// API Request Logging with Morgan
+// Custom format for better API logging
+morgan.token("body", (req) => {
+  // Only log body for POST/PUT/PATCH requests, and exclude sensitive data
+  if (["POST", "PUT", "PATCH"].includes(req.method) && req.body) {
+    try {
+      const body = { ...req.body };
+      // Remove sensitive fields from logs
+      if (body.password) body.password = "[REDACTED]";
+      if (body.token) body.token = "[REDACTED]";
+      if (body.SMTP_PASS) body.SMTP_PASS = "[REDACTED]";
+      if (body.pass) body.pass = "[REDACTED]";
+      const bodyStr = JSON.stringify(body);
+      // Truncate very long bodies
+      return bodyStr.length > 500 ? bodyStr.substring(0, 500) + "..." : bodyStr;
+    } catch (error) {
+      return "[Unable to parse body]";
+    }
+  }
+  return "-";
+});
+
+morgan.token("response-time-ms", (req, res) => {
+  return res["response-time"] ? `${Math.round(res["response-time"])}ms` : "-";
+});
+
+// Custom format for API logging
+const apiLogFormat =
+  ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :response-time-ms :res[content-length] ":referrer" ":user-agent"';
+
+// Log all API requests
 app.use(
-  morgan("combined", {
-    stream: { write: (message) => logger.info(message.trim()) },
+  morgan(apiLogFormat, {
+    stream: {
+      write: (message) => {
+        logger.info(message.trim());
+      },
+    },
+    skip: (req, res) => {
+      // Skip logging for health checks in production (reduce noise)
+      return (
+        process.env.NODE_ENV === "production" &&
+        req.path === "/api/health" &&
+        res.statusCode === 200
+      );
+    },
   })
 );
 
-// Body parsing middleware
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// Detailed logging for API endpoints (with request body for POST/PUT/PATCH)
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    morgan(":method :url :status :response-time-ms - Body: :body", {
+      stream: {
+        write: (message) => {
+          logger.info(message.trim());
+        },
+      },
+      skip: (req) => req.method === "GET" || req.path === "/api/health",
+    })
+  );
+}
 
 // Routes
 app.use("/api/health", healthRoutes);
