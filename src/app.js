@@ -9,15 +9,24 @@ const dotenv = require("dotenv");
 // Load environment variables
 dotenv.config();
 
-// Import routes
-const inquiryRoutes = require("./routes/inquiryRoutes");
-const healthRoutes = require("./routes/healthRoutes");
-const whatsappRoutes = require("./routes/whatsappRoutes");
-const testWhatsappRoutes = require("./routes/testWhatsappRoutes");
+// Import routes (with error handling)
+let inquiryRoutes, healthRoutes, whatsappRoutes, testWhatsappRoutes, errorHandler, logger;
 
-// Import middleware
-const errorHandler = require("./middleware/errorHandler");
-const logger = require("./utils/logger");
+try {
+  inquiryRoutes = require("./routes/inquiryRoutes");
+  healthRoutes = require("./routes/healthRoutes");
+  whatsappRoutes = require("./routes/whatsappRoutes");
+  testWhatsappRoutes = require("./routes/testWhatsappRoutes");
+  errorHandler = require("./middleware/errorHandler");
+  logger = require("./utils/logger");
+} catch (error) {
+  console.error("Failed to load routes or middleware:", error);
+  // Use basic error handler if custom one fails
+  errorHandler = (err, req, res, _next) => {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  };
+  logger = { info: console.log, error: console.error, warn: console.warn };
+}
 
 const app = express();
 
@@ -95,10 +104,8 @@ const corsOptions = {
 };
 
 // Apply CORS middleware
+// This automatically handles OPTIONS preflight requests for all routes
 app.use(cors(corsOptions));
-
-// Handle preflight OPTIONS requests explicitly for all routes
-app.options("*", cors(corsOptions));
 
 // Manual CORS headers middleware to ensure headers are always set
 // This runs after cors() middleware as a backup to ensure headers are present

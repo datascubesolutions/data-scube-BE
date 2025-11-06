@@ -1,3 +1,18 @@
+// Handle uncaught exceptions and unhandled rejections
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error.message);
+  console.error("Stack:", error.stack);
+  // Don't exit - let the server continue running
+  // Log but don't crash
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise);
+  console.error("Reason:", reason);
+  // Don't exit - let the server continue running
+  // Log but don't crash
+});
+
 const app = require("./app");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
@@ -7,13 +22,30 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 // Start server first (don't wait for MongoDB)
 // This ensures Render health checks pass even if DB is slow to connect
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server Running: http://localhost:${PORT}`);
-  console.log(`📊 API Endpoints: http://localhost:${PORT}/api`);
-  console.log(`💚 Health Check: http://localhost:${PORT}/api/health`);
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
-});
+let server;
+try {
+  server = app.listen(PORT, () => {
+    console.log(`🚀 Server Running: http://localhost:${PORT}`);
+    console.log(`📊 API Endpoints: http://localhost:${PORT}/api`);
+    console.log(`💚 Health Check: http://localhost:${PORT}/api/health`);
+    try {
+      logger.info(`Server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+    } catch (logError) {
+      // If logger fails, continue anyway
+      console.log("Logger not available, continuing without logging");
+    }
+  });
+
+  // Handle server errors
+  server.on("error", (error) => {
+    console.error("Server error:", error);
+    // Don't exit - try to recover
+  });
+} catch (error) {
+  console.error("Failed to start server:", error);
+  process.exit(1);
+}
 
 // Connect to MongoDB (non-blocking)
 if (MONGODB_URI) {
