@@ -138,7 +138,12 @@ Please review and respond promptly.`;
 
       return await this.sendTextMessage(adminPhone, message);
     } catch (error) {
-      logger.error("Error sending WhatsApp admin notification:", error);
+      logger.error(JSON.stringify({
+        message: "Error sending WhatsApp admin notification",
+        error: error.message,
+        code: error.code,
+        stack: error.stack,
+      }));
       throw error;
     }
   }
@@ -178,7 +183,12 @@ Please review and respond promptly.`;
       }
       return true;
     } catch (error) {
-      logger.error("Error handling WhatsApp webhook:", error);
+      logger.error(JSON.stringify({
+        message: "Error handling WhatsApp webhook",
+        error: error.message,
+        code: error.code,
+        stack: error.stack,
+      }));
       return false;
     }
   }
