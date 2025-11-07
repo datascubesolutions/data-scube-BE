@@ -42,6 +42,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "http://127.0.0.1:3001",
       "http://127.0.0.1:3002",
       "https://data-scube-solutions.vercel.app",
+      "https://data-scube-solutions.vercel.app/", // With trailing slash
     ];
 
 const corsOptions = {
@@ -52,17 +53,26 @@ const corsOptions = {
     }
 
     // Always allow Vercel deployments (production and preview)
-    if (origin.includes(".vercel.app")) {
+    // This includes all subdomains like *.vercel.app
+    if (origin.includes(".vercel.app") || origin === "https://data-scube-solutions.vercel.app") {
       return callback(null, true);
     }
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin is in allowed list (exact match or without trailing slash)
+    const normalizedOrigin = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+    const normalizedAllowed = allowedOrigins.map(o => o.endsWith("/") ? o.slice(0, -1) : o);
+    
+    if (normalizedAllowed.includes(normalizedOrigin) || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
     // In production, if ALLOWED_ORIGINS is explicitly set, reject unknown origins
+    // But still allow Vercel domains
     if (process.env.NODE_ENV === "production" && process.env.ALLOWED_ORIGINS) {
+      // Double-check for Vercel even if ALLOWED_ORIGINS is set
+      if (origin.includes(".vercel.app")) {
+        return callback(null, true);
+      }
       return callback(new Error("Not allowed by CORS"));
     }
 
@@ -111,12 +121,18 @@ app.use((req, res, next) => {
   let allowOrigin = false;
   if (!origin) {
     allowOrigin = true; // Allow requests with no origin
-  } else if (origin.includes(".vercel.app")) {
+  } else if (origin.includes(".vercel.app") || origin === "https://data-scube-solutions.vercel.app") {
     allowOrigin = true; // Always allow Vercel
-  } else if (allowedOrigins.includes(origin)) {
-    allowOrigin = true; // Allow if in allowed list
-  } else if (process.env.NODE_ENV !== "production" || !process.env.ALLOWED_ORIGINS) {
-    allowOrigin = true; // Allow in dev or if ALLOWED_ORIGINS not set
+  } else {
+    // Normalize origin (remove trailing slash) for comparison
+    const normalizedOrigin = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+    const normalizedAllowed = allowedOrigins.map(o => o.endsWith("/") ? o.slice(0, -1) : o);
+    
+    if (normalizedAllowed.includes(normalizedOrigin) || allowedOrigins.includes(origin)) {
+      allowOrigin = true; // Allow if in allowed list
+    } else if (process.env.NODE_ENV !== "production" || !process.env.ALLOWED_ORIGINS) {
+      allowOrigin = true; // Allow in dev or if ALLOWED_ORIGINS not set
+    }
   }
   
   // Set CORS headers if origin is allowed
