@@ -13,12 +13,28 @@ class InquiryController {
   async createInquiry(req, res, next) {
     try {
       // Validate request body
-      const { error, value } = createInquirySchema.validate(req.body);
+      const { error, value } = createInquirySchema.validate(req.body, {
+        abortEarly: false,
+      });
       if (error) {
+        const errorMessages = error.details.map((detail) => {
+          // Make error messages more user-friendly
+          const field = detail.path.join(".");
+          let message = detail.message;
+          
+          // Clean up common validation messages
+          message = message.replace(/"/g, "");
+          message = message.charAt(0).toUpperCase() + message.slice(1);
+          
+          return message;
+        });
+        
         return res.status(400).json({
           success: false,
-          message: "Validation error",
-          errors: error.details.map((detail) => detail.message),
+          message: errorMessages.length === 1 
+            ? errorMessages[0] 
+            : "Please fix the following errors",
+          errors: errorMessages,
         });
       }
 
@@ -42,10 +58,12 @@ class InquiryController {
           await inquiry.save();
           logger.info(`Confirmation email sent for inquiry ${inquiry._id}`);
         } catch (emailError) {
-          logger.error(
-            `Failed to send confirmation email for inquiry ${inquiry._id}:`,
-            emailError
-          );
+          logger.error(JSON.stringify({
+            message: `Failed to send confirmation email for inquiry ${inquiry._id}`,
+            error: emailError.message,
+            code: emailError.code,
+            inquiryId: inquiry._id,
+          }));
         }
       });
 
@@ -61,10 +79,12 @@ class InquiryController {
               `WhatsApp thank you message sent for inquiry ${inquiry._id}`
             );
           } catch (whatsappError) {
-            logger.error(
-              `Failed to send WhatsApp message for inquiry ${inquiry._id}:`,
-              whatsappError
-            );
+            logger.error(JSON.stringify({
+              message: `Failed to send WhatsApp message for inquiry ${inquiry._id}`,
+              error: whatsappError.message,
+              code: whatsappError.code,
+              inquiryId: inquiry._id,
+            }));
           }
         });
       }
@@ -75,10 +95,12 @@ class InquiryController {
           await emailService.sendAdminNotification(inquiry);
           logger.info(`Admin notification sent for inquiry ${inquiry._id}`);
         } catch (emailError) {
-          logger.error(
-            `Failed to send admin notification for inquiry ${inquiry._id}:`,
-            emailError
-          );
+          logger.error(JSON.stringify({
+            message: `Failed to send admin notification for inquiry ${inquiry._id}`,
+            error: emailError.message,
+            code: emailError.code,
+            inquiryId: inquiry._id,
+          }));
         }
       });
 
@@ -90,10 +112,12 @@ class InquiryController {
             `WhatsApp admin notification sent for inquiry ${inquiry._id}`
           );
         } catch (whatsappError) {
-          logger.error(
-            `Failed to send WhatsApp admin notification for inquiry ${inquiry._id}:`,
-            whatsappError
-          );
+          logger.error(JSON.stringify({
+            message: `Failed to send WhatsApp admin notification for inquiry ${inquiry._id}`,
+            error: whatsappError.message,
+            code: whatsappError.code,
+            inquiryId: inquiry._id,
+          }));
         }
       });
 
@@ -107,7 +131,12 @@ class InquiryController {
         },
       });
     } catch (error) {
-      logger.error("Error creating inquiry:", error);
+      logger.error(JSON.stringify({
+        message: "Error creating inquiry",
+        error: error.message,
+        code: error.code,
+        stack: error.stack,
+      }));
       next(error);
     }
   }
@@ -191,7 +220,12 @@ class InquiryController {
         },
       });
     } catch (error) {
-      logger.error("Error fetching inquiries:", error);
+      logger.error(JSON.stringify({
+        message: "Error fetching inquiries",
+        error: error.message,
+        code: error.code,
+        stack: error.stack,
+      }));
       next(error);
     }
   }
@@ -218,7 +252,13 @@ class InquiryController {
         data: inquiry,
       });
     } catch (error) {
-      logger.error("Error fetching inquiry:", error);
+      logger.error(JSON.stringify({
+        message: "Error fetching inquiry",
+        error: error.message,
+        code: error.code,
+        inquiryId: req.params.id,
+        stack: error.stack,
+      }));
       next(error);
     }
   }
@@ -229,12 +269,23 @@ class InquiryController {
       const { id } = req.params;
 
       // Validate request body
-      const { error, value } = updateInquirySchema.validate(req.body);
+      const { error, value } = updateInquirySchema.validate(req.body, {
+        abortEarly: false,
+      });
       if (error) {
+        const errorMessages = error.details.map((detail) => {
+          let message = detail.message;
+          message = message.replace(/"/g, "");
+          message = message.charAt(0).toUpperCase() + message.slice(1);
+          return message;
+        });
+        
         return res.status(400).json({
           success: false,
-          message: "Validation error",
-          errors: error.details.map((detail) => detail.message),
+          message: errorMessages.length === 1 
+            ? errorMessages[0] 
+            : "Please fix the following errors",
+          errors: errorMessages,
         });
       }
 
@@ -257,7 +308,13 @@ class InquiryController {
         data: inquiry,
       });
     } catch (error) {
-      logger.error("Error updating inquiry:", error);
+      logger.error(JSON.stringify({
+        message: "Error updating inquiry",
+        error: error.message,
+        code: error.code,
+        inquiryId: req.params.id,
+        stack: error.stack,
+      }));
       next(error);
     }
   }
@@ -281,7 +338,13 @@ class InquiryController {
         message: "Inquiry deleted successfully",
       });
     } catch (error) {
-      logger.error("Error deleting inquiry:", error);
+      logger.error(JSON.stringify({
+        message: "Error deleting inquiry",
+        error: error.message,
+        code: error.code,
+        inquiryId: req.params.id,
+        stack: error.stack,
+      }));
       next(error);
     }
   }
@@ -341,7 +404,12 @@ class InquiryController {
         },
       });
     } catch (error) {
-      logger.error("Error fetching inquiry stats:", error);
+      logger.error(JSON.stringify({
+        message: "Error fetching inquiry stats",
+        error: error.message,
+        code: error.code,
+        stack: error.stack,
+      }));
       next(error);
     }
   }

@@ -30,7 +30,12 @@ router.post("/webhook", (req, res) => {
       res.status(400).send("Bad Request");
     }
   } catch (error) {
-    logger.error("WhatsApp webhook error:", error);
+    logger.error(JSON.stringify({
+      message: "WhatsApp webhook error",
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    }));
     res.status(500).send("Internal Server Error");
   }
 });
@@ -55,7 +60,12 @@ router.post("/test-message", async (req, res) => {
       data: result,
     });
   } catch (error) {
-    logger.error("Test message error:", error);
+    logger.error(JSON.stringify({
+      message: "Test message error",
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    }));
     res.status(500).json({
       success: false,
       message: "Failed to send WhatsApp message",

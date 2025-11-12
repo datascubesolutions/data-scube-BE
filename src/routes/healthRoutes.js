@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const router = express.Router();
 
 // Health check endpoint
+// Always returns 200 to prevent Render from killing the service
+// Database status is included but doesn't affect HTTP status
 router.get("/", (req, res) => {
   const healthCheck = {
     uptime: process.uptime(),
@@ -27,10 +29,10 @@ router.get("/", (req, res) => {
     },
   };
 
-  const httpStatus = mongoose.connection.readyState === 1 ? 200 : 503;
-
-  res.status(httpStatus).json({
-    success: httpStatus === 200,
+  // Always return 200 - let the service start even if DB is not connected yet
+  // The /ready endpoint can be used for readiness checks
+  res.status(200).json({
+    success: true,
     data: healthCheck,
   });
 });

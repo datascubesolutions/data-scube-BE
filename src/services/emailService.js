@@ -3,28 +3,50 @@ const logger = require("../utils/logger");
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    try {
+      // Only create transporter if SMTP is configured
+      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
 
-    // Verify connection configuration
-    this.transporter.verify((error, _success) => {
-      if (error) {
-        logger.error("SMTP connection error:", error);
+        // Verify connection configuration (non-blocking, with error handling)
+        try {
+          this.transporter.verify((error, _success) => {
+            if (error) {
+              logger.error(JSON.stringify({ message: "SMTP connection error", error: error.message, code: error.code }));
+            } else {
+              logger.info("SMTP server is ready to take our messages");
+            }
+          });
+        } catch (verifyError) {
+          // If verification fails, continue anyway
+          logger.warn("SMTP verification failed, but service will continue");
+        }
       } else {
-        logger.info("SMTP server is ready to take our messages");
+        this.transporter = null;
+        logger.warn("SMTP not configured - email functionality will be disabled");
       }
-    });
+    } catch (error) {
+      // If email service initialization fails, continue without email
+      this.transporter = null;
+      logger.error(JSON.stringify({ message: "Email service initialization failed", error: error.message }));
+    }
   }
 
   // Send inquiry confirmation email to user
   async sendInquiryConfirmation(inquiry) {
+    if (!this.transporter) {
+      logger.warn("Email service not configured, skipping confirmation email");
+      return null;
+    }
+    
     try {
       const mailOptions = {
         from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
@@ -36,23 +58,27 @@ class EmailService {
 
       const result = await this.transporter.sendMail(mailOptions);
       logger.info(
-        `Confirmation email sent to ${inquiry.email}:`,
-        result.messageId
+        `Confirmation email sent to ${inquiry.email}: ${result.messageId}`
       );
       return result;
     } catch (error) {
-      logger.error("Error sending confirmation email:", error);
+      logger.error(JSON.stringify({ message: "Error sending confirmation email", error: error.message, code: error.code, email: inquiry.email }));
       throw error;
     }
   }
 
   // Send notification to admin
   async sendAdminNotification(inquiry) {
+    if (!this.transporter) {
+      logger.warn("Email service not configured, skipping admin notification");
+      return null;
+    }
+    
     try {
       const adminEmail = process.env.ADMIN_EMAIL;
       if (!adminEmail) {
         logger.warn("Admin email not configured, skipping notification");
-        return;
+        return null;
       }
 
       const mailOptions = {
@@ -64,10 +90,10 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`Admin notification sent:`, result.messageId);
+      logger.info(`Admin notification sent: ${result.messageId}`);
       return result;
     } catch (error) {
-      logger.error("Error sending admin notification:", error);
+      logger.error(JSON.stringify({ message: "Error sending admin notification", error: error.message, code: error.code, inquiryId: inquiry._id }));
       throw error;
     }
   }

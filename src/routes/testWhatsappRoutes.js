@@ -43,7 +43,12 @@ Time: ${new Date().toLocaleString("en-IN")}`;
       },
     });
   } catch (error) {
-    logger.error("WhatsApp test error:", error);
+    logger.error(JSON.stringify({
+      message: "WhatsApp test error",
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    }));
     res.status(500).json({
       success: false,
       message: "Failed to send WhatsApp test message",
@@ -89,7 +94,12 @@ router.post("/test-inquiry-notification", async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("WhatsApp inquiry test error:", error);
+    logger.error(JSON.stringify({
+      message: "WhatsApp inquiry test error",
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    }));
     res.status(500).json({
       success: false,
       message: "Failed to send WhatsApp inquiry notifications",
