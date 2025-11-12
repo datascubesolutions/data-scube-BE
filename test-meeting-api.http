@@ -1,0 +1,86 @@
+# Meeting Scheduling API Test Requests
+# Use with REST Client extension in VS Code or similar tools
+
+### Variables
+@baseUrl = http://localhost:3000/api/meetings
+@prodUrl = https://data-scube-be.onrender.com/api/meetings
+
+### 1. Get available slots for today
+GET {{baseUrl}}/slots?date=2024-11-05
+Content-Type: application/json
+
+### 2. Get available slots for tomorrow
+GET {{baseUrl}}/slots?date=2024-11-06
+Content-Type: application/json
+
+### 3. Book a meeting slot
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "slotId": "REPLACE_WITH_ACTUAL_SLOT_ID",
+  "customerName": "John Doe",
+  "customerEmail": "john@example.com",
+  "customerPhone": "1234567890",
+  "customerCompany": "ABC Corporation",
+  "meetingPurpose": "product-demo",
+  "meetingDescription": "Interested in learning about your ERP solutions for our manufacturing business"
+}
+
+### 4. Get all bookings (Admin)
+GET {{baseUrl}}/bookings?page=1&limit=10
+Content-Type: application/json
+
+### 5. Get bookings by status
+GET {{baseUrl}}/bookings?status=confirmed&page=1&limit=5
+Content-Type: application/json
+
+### 6. Get booking by reference
+GET {{baseUrl}}/booking/MTG-ABC123
+Content-Type: application/json
+
+### 7. Get customer bookings
+GET {{baseUrl}}/customer/john@example.com/bookings
+Content-Type: application/json
+
+### 8. Update booking (Admin)
+PUT {{baseUrl}}/booking/REPLACE_WITH_BOOKING_ID
+Content-Type: application/json
+
+{
+  "status": "completed",
+  "meetingLink": "https://meet.google.com/abc-def-ghi",
+  "notes": "Great meeting! Customer is interested in the premium package."
+}
+
+### 9. Cancel booking
+PUT {{baseUrl}}/booking/REPLACE_WITH_BOOKING_ID/cancel
+Content-Type: application/json
+
+{
+  "reason": "Customer requested to reschedule due to emergency"
+}
+
+### 10. Get booking statistics
+GET {{baseUrl}}/stats
+Content-Type: application/json
+
+### Production URLs (replace baseUrl with prodUrl)
+
+### Get available slots (Production)
+GET {{prodUrl}}/slots?date=2024-11-05
+Content-Type: application/json
+
+### Book meeting (Production)
+POST {{prodUrl}}/book
+Content-Type: application/json
+
+{
+  "slotId": "REPLACE_WITH_ACTUAL_SLOT_ID",
+  "customerName": "Jane Smith",
+  "customerEmail": "jane@company.com",
+  "customerPhone": "9876543210",
+  "customerCompany": "XYZ Ltd",
+  "meetingPurpose": "consultation",
+  "meetingDescription": "Need consultation for digital transformation project"
+}

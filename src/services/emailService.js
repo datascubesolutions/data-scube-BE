@@ -82,17 +82,24 @@ class EmailService {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Thank You for Your Inquiry</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; min-height: 100vh; }
+            .email-wrapper { min-height: 100vh; display: table; width: 100%; background-color: #f4f4f4; }
+            .email-content { display: table-cell; vertical-align: middle; padding: 20px 0; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
-            .content { padding: 40px 30px; }
+            .header { background: #ffffff; color: #333; padding: 30px; text-align: center; border-bottom: 3px solid #667eea; }
+            .logo { max-width: 150px; height: auto; margin-bottom: 20px; }
+            .header h1 { margin: 10px 0; font-size: 28px; font-weight: 300; color: #333; }
+            .header p { margin: 5px 0; color: #666; }
+            .emoji { font-size: 48px; margin-bottom: 10px; }
+            .content { padding: 40px 30px; min-height: 400px; }
             .inquiry-details { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
             .detail-row { display: flex; margin-bottom: 10px; }
             .detail-label { font-weight: bold; min-width: 120px; color: #555; }
             .detail-value { color: #333; }
             .message-box { background-color: #e3f2fd; padding: 20px; border-left: 4px solid #2196f3; margin: 20px 0; }
-            .footer { background-color: #333; color: white; padding: 20px; text-align: center; font-size: 14px; }
+            .footer { background-color: #333; color: white; padding: 30px 20px; text-align: center; font-size: 14px; margin-top: 0; }
+            .footer p { margin: 5px 0; }
+            .footer a { color: #667eea; text-decoration: none; }
             .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
             .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
             .status-pending { background-color: #fff3cd; color: #856404; }
@@ -100,11 +107,15 @@ class EmailService {
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1>Thank You for Contacting Us!</h1>
-                <p>We've received your inquiry and will get back to you soon</p>
-            </div>
+        <div class="email-wrapper">
+            <div class="email-content">
+                <div class="container">
+                    <div class="header">
+                        <img src="https://via.placeholder.com/150x50/667eea/ffffff?text=DataScube" alt="DataScube Logo" class="logo">
+                        <div class="emoji">🎉</div>
+                        <h1>Thank You for Contacting Us!</h1>
+                        <p>We've received your inquiry and will get back to you soon</p>
+                    </div>
             
             <div class="content">
                 <p>Dear ${inquiry.name},</p>
