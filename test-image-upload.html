@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Upload Test - DataScube API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      .upload-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 2px dashed #ddd;
+        border-radius: 5px;
+        text-align: center;
+      }
+      input[type="file"] {
+        margin: 10px 0;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+      }
+      button:hover {
+        background: #5568d3;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .image-preview {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .image-preview img {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .url-box {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        word-break: break-all;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        margin: 20px 0;
+      }
+      .loading.active {
+        display: block;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📸 Image Upload Test</h1>
+      <p style="text-align: center; color: #666">
+        Test Cloudinary image upload API
+      </p>
+
+      <div class="upload-section">
+        <h3>Upload Single Image</h3>
+        <input type="file" id="singleFile" accept="image/*" />
+        <br />
+        <button onclick="uploadSingle()">Upload Image</button>
+      </div>
+
+      <div class="upload-section">
+        <h3>Upload Multiple Images</h3>
+        <input type="file" id="multipleFiles" accept="image/*" multiple />
+        <br />
+        <button onclick="uploadMultiple()">Upload Images</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Uploading...</p>
+      </div>
+
+      <div id="result"></div>
+      <div id="preview"></div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:3000";
+
+      function showLoading() {
+        document.getElementById("loading").classList.add("active");
+      }
+
+      function hideLoading() {
+        document.getElementById("loading").classList.remove("active");
+      }
+
+      function showResult(message, isSuccess) {
+        const resultDiv = document.getElementById("result");
+        resultDiv.className = `result ${isSuccess ? "success" : "error"}`;
+        resultDiv.innerHTML = message;
+      }
+
+      function showPreview(url) {
+        const previewDiv = document.getElementById("preview");
+        previewDiv.innerHTML = `
+                <div class="image-preview">
+                    <h3>Uploaded Image:</h3>
+                    <img src="${url}" alt="Uploaded Image">
+                    <div class="url-box">
+                        <strong>Image URL:</strong><br>
+                        ${url}
+                    </div>
+                    <button onclick="copyToClipboard('${url}')">Copy URL</button>
+                </div>
+            `;
+      }
+
+      function showMultiplePreview(images) {
+        const previewDiv = document.getElementById("preview");
+        let html = '<div class="image-preview"><h3>Uploaded Images:</h3>';
+
+        images.forEach((img, index) => {
+          html += `
+                    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4>Image ${index + 1}</h4>
+                        <img src="${img.url}" alt="Uploaded Image ${index + 1}" style="max-width: 300px;">
+                        <div class="url-box">${img.url}</div>
+                        <button onclick="copyToClipboard('${img.url}')">Copy URL</button>
+                    </div>
+                `;
+        });
+
+        html += "</div>";
+        previewDiv.innerHTML = html;
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert("URL copied to clipboard!");
+        });
+      }
+
+      async function uploadSingle() {
+        const fileInput = document.getElementById("singleFile");
+        const file = fileInput.files[0];
+
+        if (!file) {
+          showResult("Please select an image file", false);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("folder", "test-uploads");
+
+        showLoading();
+
+        try {
+          const response = await fetch(`${API_URL}/api/upload/image`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showResult(`✅ ${data.message}`, true);
+            showPreview(data.data.url);
+          } else {
+            showResult(`❌ ${data.message}`, false);
+          }
+        } catch (error) {
+          showResult(`❌ Error: ${error.message}`, false);
+        } finally {
+          hideLoading();
+        }
+      }
+
+      async function uploadMultiple() {
+        const fileInput = document.getElementById("multipleFiles");
+        const files = fileInput.files;
+
+        if (files.length === 0) {
+          showResult("Please select one or more image files", false);
+          return;
+        }
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("images", files[i]);
+        }
+        formData.append("folder", "test-uploads");
+
+        showLoading();
+
+        try {
+          const response = await fetch(`${API_URL}/api/upload/images`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showResult(`✅ ${data.message}`, true);
+            showMultiplePreview(data.data.images);
+          } else {
+            showResult(`❌ ${data.message}`, false);
+          }
+        } catch (error) {
+          showResult(`❌ Error: ${error.message}`, false);
+        } finally {
+          hideLoading();
+        }
+      }
+    </script>
+  </body>
+</html>

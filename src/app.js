@@ -15,6 +15,7 @@ const healthRoutes = require("./routes/healthRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
 const testWhatsappRoutes = require("./routes/testWhatsappRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 // Import middleware
 const errorHandler = require("./middleware/errorHandler");
@@ -79,6 +80,7 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/test-whatsapp", testWhatsappRoutes);
 app.use("/api/meetings", meetingRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
