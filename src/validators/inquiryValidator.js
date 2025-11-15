@@ -41,6 +41,7 @@ const createInquirySchema = Joi.object({
       "partnership",
       "technical",
       "erp-solutions",
+      "web-development",
       "other"
     )
     .required()
@@ -101,6 +102,7 @@ const queryInquirySchema = Joi.object({
       "sales",
       "partnership",
       "technical",
+      "web-development",
       "erp-solutions",
       "other"
     )

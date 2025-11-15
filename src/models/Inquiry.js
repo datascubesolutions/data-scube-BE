@@ -51,6 +51,7 @@ const inquirySchema = new mongoose.Schema(
         "partnership",
         "technical",
         "erp-solutions",
+        "web-development",
         "other",
       ],
     },
