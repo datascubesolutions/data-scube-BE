@@ -238,7 +238,7 @@ class EmailService {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Submitted:</span>
-                        <span class="detail-value">${new Date(inquiry.createdAt).toLocaleString()}</span>
+                        <span class="detail-value">${this.formatDate(inquiry.createdAt)}</span>
                     </div>
                 </div>
                 
@@ -308,7 +308,7 @@ Inquiry Details:
 - Type: ${inquiry.inquiryType}
 - Priority: ${inquiry.priority}
 - Status: ${inquiry.status}
-- Submitted: ${new Date(inquiry.createdAt).toLocaleString()}
+- Submitted: ${this.formatDate(inquiry.createdAt)}
 
 Your Message:
 ${inquiry.message}
@@ -358,7 +358,7 @@ ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}
                 <div class="detail"><span class="label">Priority:</span> <span class="priority-${inquiry.priority}">${inquiry.priority.toUpperCase()}</span></div>
                 <div class="detail"><span class="label">Source:</span> ${inquiry.source}</div>
                 <div class="detail"><span class="label">IP Address:</span> ${inquiry.ipAddress || "Unknown"}</div>
-                <div class="detail"><span class="label">Submitted:</span> ${new Date(inquiry.createdAt).toLocaleString()}</div>
+                <div class="detail"><span class="label">Submitted:</span> ${this.formatDate(inquiry.createdAt)}</div>
                 
                 <h3>Message:</h3>
                 <p style="background-color: white; padding: 15px; border-left: 4px solid #007bff;">${inquiry.message}</p>
@@ -385,7 +385,7 @@ Type: ${inquiry.inquiryType}
 Priority: ${inquiry.priority.toUpperCase()}
 Source: ${inquiry.source}
 IP Address: ${inquiry.ipAddress || "Unknown"}
-Submitted: ${new Date(inquiry.createdAt).toLocaleString()}
+Submitted: ${this.formatDate(inquiry.createdAt)}
 
 Message:
 ${inquiry.message}
@@ -412,6 +412,36 @@ Action Required: Please review and respond to this inquiry promptly.
       urgent: "#dc3545",
     };
     return colors[priority] || "#6c757d";
+  }
+
+  // Format date as "16-Nov-2025 12:14 PM"
+  formatDate(date) {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, "0");
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 should be 12
+
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
   }
 }
 
