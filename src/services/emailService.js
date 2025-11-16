@@ -5,7 +5,11 @@ class EmailService {
   constructor() {
     try {
       // Only create transporter if SMTP is configured
-      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      if (
+        process.env.SMTP_HOST &&
+        process.env.SMTP_USER &&
+        process.env.SMTP_PASS
+      ) {
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
           port: parseInt(process.env.SMTP_PORT) || 587,
@@ -20,7 +24,13 @@ class EmailService {
         try {
           this.transporter.verify((error, _success) => {
             if (error) {
-              logger.error(JSON.stringify({ message: "SMTP connection error", error: error.message, code: error.code }));
+              logger.error(
+                JSON.stringify({
+                  message: "SMTP connection error",
+                  error: error.message,
+                  code: error.code,
+                })
+              );
             } else {
               logger.info("SMTP server is ready to take our messages");
             }
@@ -31,12 +41,19 @@ class EmailService {
         }
       } else {
         this.transporter = null;
-        logger.warn("SMTP not configured - email functionality will be disabled");
+        logger.warn(
+          "SMTP not configured - email functionality will be disabled"
+        );
       }
     } catch (error) {
       // If email service initialization fails, continue without email
       this.transporter = null;
-      logger.error(JSON.stringify({ message: "Email service initialization failed", error: error.message }));
+      logger.error(
+        JSON.stringify({
+          message: "Email service initialization failed",
+          error: error.message,
+        })
+      );
     }
   }
 
@@ -46,7 +63,7 @@ class EmailService {
       logger.warn("Email service not configured, skipping confirmation email");
       return null;
     }
-    
+
     try {
       const mailOptions = {
         from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
@@ -62,7 +79,14 @@ class EmailService {
       );
       return result;
     } catch (error) {
-      logger.error(JSON.stringify({ message: "Error sending confirmation email", error: error.message, code: error.code, email: inquiry.email }));
+      logger.error(
+        JSON.stringify({
+          message: "Error sending confirmation email",
+          error: error.message,
+          code: error.code,
+          email: inquiry.email,
+        })
+      );
       throw error;
     }
   }
@@ -73,7 +97,7 @@ class EmailService {
       logger.warn("Email service not configured, skipping admin notification");
       return null;
     }
-    
+
     try {
       const adminEmail = process.env.ADMIN_EMAIL;
       if (!adminEmail) {
@@ -93,7 +117,14 @@ class EmailService {
       logger.info(`Admin notification sent: ${result.messageId}`);
       return result;
     } catch (error) {
-      logger.error(JSON.stringify({ message: "Error sending admin notification", error: error.message, code: error.code, inquiryId: inquiry._id }));
+      logger.error(
+        JSON.stringify({
+          message: "Error sending admin notification",
+          error: error.message,
+          code: error.code,
+          inquiryId: inquiry._id,
+        })
+      );
       throw error;
     }
   }
@@ -106,54 +137,85 @@ class EmailService {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Thank You for Your Inquiry</title>
+        <title>Thank You for Your Inquiry - DataScube Solutions</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; min-height: 100vh; }
-            .email-wrapper { min-height: 100vh; display: table; width: 100%; background-color: #f4f4f4; }
-            .email-content { display: table-cell; vertical-align: middle; padding: 20px 0; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-            .header { background: #ffffff; color: #333; padding: 30px; text-align: center; border-bottom: 3px solid #667eea; }
-            .logo { max-width: 150px; height: auto; margin-bottom: 20px; }
-            .header h1 { margin: 10px 0; font-size: 28px; font-weight: 300; color: #333; }
-            .header p { margin: 5px 0; color: #666; }
-            .emoji { font-size: 48px; margin-bottom: 10px; }
-            .content { padding: 40px 30px; min-height: 400px; }
-            .inquiry-details { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .detail-row { display: flex; margin-bottom: 10px; }
-            .detail-label { font-weight: bold; min-width: 120px; color: #555; }
-            .detail-value { color: #333; }
-            .message-box { background-color: #e3f2fd; padding: 20px; border-left: 4px solid #2196f3; margin: 20px 0; }
-            .footer { background-color: #333; color: white; padding: 30px 20px; text-align: center; font-size: 14px; margin-top: 0; }
-            .footer p { margin: 5px 0; }
-            .footer a { color: #667eea; text-decoration: none; }
-            .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-            .status-pending { background-color: #fff3cd; color: #856404; }
-            .priority-${inquiry.priority} { background-color: ${this.getPriorityColor(inquiry.priority)}; color: white; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f7fa; }
+            .email-wrapper { width: 100%; background-color: #f5f7fa; padding: 40px 20px; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); }
+            
+            /* Header Styles */
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 25px; text-align: center; }
+            .logo { max-width: 180px; height: auto; margin-bottom: 15px; background: white; padding: 12px; border-radius: 8px; }
+            .header-title { color: #ffffff; font-size: 26px; font-weight: 600; margin: 15px 0 8px; letter-spacing: -0.5px; }
+            .header-subtitle { color: rgba(255, 255, 255, 0.95); font-size: 15px; font-weight: 400; }
+            
+            /* Content Styles */
+            .content { padding: 30px 28px; }
+            .greeting { font-size: 17px; color: #2d3748; margin-bottom: 15px; font-weight: 500; }
+            .intro-text { color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+            
+            /* Inquiry Details Card */
+            .inquiry-card { background: linear-gradient(to bottom, #f7fafc, #ffffff); border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 20px 0; }
+            .card-title { font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+            .detail-row { display: flex; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+            .detail-row:last-child { border-bottom: none; }
+            .detail-label { font-weight: 600; min-width: 130px; color: #4a5568; font-size: 14px; }
+            .detail-value { color: #2d3748; font-size: 14px; flex: 1; }
+            
+            /* Status Badges */
+            .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+            .status-pending { background-color: #fef3c7; color: #92400e; }
+            .priority-low { background-color: #d1fae5; color: #065f46; }
+            .priority-medium { background-color: #fef3c7; color: #92400e; }
+            .priority-high { background-color: #fed7d7; color: #9b2c2c; }
+            .priority-urgent { background-color: #fecaca; color: #7f1d1d; }
+            
+            /* Message Box */
+            .message-box { background-color: #f0f9ff; border-left: 4px solid #0284c7; padding: 15px; border-radius: 6px; margin: 18px 0; }
+            .message-title { font-weight: 600; color: #0c4a6e; margin-bottom: 8px; font-size: 13px; }
+            .message-text { color: #075985; font-size: 13px; line-height: 1.5; }
+            
+            /* Next Steps */
+            .next-steps { margin: 20px 0; }
+            .next-steps-title { font-size: 16px; font-weight: 600; color: #2d3748; margin-bottom: 12px; }
+            .steps-list { list-style: none; padding: 0; }
+            .steps-list li { padding: 8px 0 8px 28px; color: #4a5568; font-size: 13px; position: relative; }
+            .steps-list li:before { content: "✓"; position: absolute; left: 0; color: #667eea; font-weight: bold; font-size: 15px; }
+            
+            /* CTA Button */
+            .cta-section { text-align: center; margin: 25px 0; padding: 20px 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+            .cta-button { display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); transition: all 0.3s; }
+            .cta-button:hover { box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5); transform: translateY(-2px); }
+            
+            /* Footer */
+            .footer { background-color: #1a202c; color: #cbd5e0; padding: 25px 25px; text-align: center; }
+            .footer-text { font-size: 13px; line-height: 1.6; margin: 6px 0; }
+            .footer-link { color: #667eea; text-decoration: none; font-weight: 500; }
+            .footer-link:hover { color: #764ba2; }
+            .social-links { margin: 20px 0; }
+            .social-links a { color: #cbd5e0; margin: 0 10px; text-decoration: none; font-size: 13px; }
+            .copyright { margin-top: 20px; padding-top: 20px; border-top: 1px solid #2d3748; font-size: 12px; color: #a0aec0; }
         </style>
     </head>
     <body>
         <div class="email-wrapper">
-            <div class="email-content">
-                <div class="container">
-                    <div class="header">
-                        <img src="https://via.placeholder.com/150x50/667eea/ffffff?text=DataScube" alt="DataScube Logo" class="logo">
-                        <div class="emoji">🎉</div>
-                        <h1>Thank You for Contacting Us!</h1>
-                        <p>We've received your inquiry and will get back to you soon</p>
-                    </div>
-            
-            <div class="content">
-                <p>Dear ${inquiry.name},</p>
+            <div class="container">
+                <!-- Header -->
+                <div class="header">
+                    <img src="${process.env.LOGO_URL || "https://res.cloudinary.com/nikul/image/upload/v1763274278/datascube/logo.png"}" alt="DataScube Solutions" class="logo">
+                    <h1 class="header-title">Thank You for Reaching Out!</h1>
+                    <p class="header-subtitle">We've received your inquiry and our team will respond shortly</p>
+                </div>
                 
-                <p>Thank you for reaching out to us. We have successfully received your inquiry and our team will review it shortly. Here are the details of your submission:</p>
-                
-                <div class="inquiry-details">
-                    <h3 style="margin-top: 0; color: #667eea;">Inquiry Details</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">Inquiry ID:</span>
-                        <span class="detail-value">#${inquiry._id.toString().slice(-6)}</span>
-                    </div>
+                <!-- Content -->
+                <div class="content">
+                    <p class="greeting">Hello ${inquiry.name},</p>
+                    
+                    <p class="intro-text">Thank you for contacting DataScube Solutions. We have successfully received your inquiry and our expert team will review it carefully. We typically respond within 24 hours during business days.</p>
+                    
+                    <div class="inquiry-card">
+                        <div class="card-title">📋 Inquiry Summary</div>
                     <div class="detail-row">
                         <span class="detail-label">Subject:</span>
                         <span class="detail-value">${inquiry.subject}</span>
@@ -185,23 +247,45 @@ class EmailService {
                     <p style="margin-bottom: 0;">${inquiry.message}</p>
                 </div>
                 
-                <h3>What happens next?</h3>
-                <ul>
-                    <li>Our team will review your inquiry within 24 hours</li>
-                    <li>You'll receive updates via email at ${inquiry.email}</li>
-                    <li>For urgent matters, you can call us at ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}</li>
-                </ul>
+                    <!-- Next Steps -->
+                    <div class="next-steps">
+                        <h3 class="next-steps-title">What Happens Next?</h3>
+                        <ul class="steps-list">
+                            <li>Our team will review your inquiry within 24 hours</li>
+                            <li>You'll receive updates via email at datascubesolutions@gmail.com</li>
+                            <li>A dedicated specialist will be assigned to your case</li>
+                            <li>For urgent matters, call us at +91 73003 40014</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- CTA Button -->
+                    <div class="cta-section">
+                        <p style="color: #4a5568; margin-bottom: 15px; font-size: 13px;">Want to learn more about our solutions?</p>
+                        <a href="https://data-scube-solutions-git-k-detail-t-6278ab-data-scubes-projects.vercel.app" class="cta-button" style="color: #ffffff !important;">Visit Our Website</a>
+                    </div>
+                    
+                    <p style="color: #718096; font-size: 13px; margin-top: 20px;">If you have any additional information or questions, please don't hesitate to reach out to us at <a href="mailto:datascubesolutions@gmail.com" style="color: #667eea; text-decoration: none;">datascubesolutions@gmail.com</a></p>
+                    
+                    <p style="color: #2d3748; font-size: 13px; margin-top: 18px;">Best regards,<br><strong style="color: #667eea;">DataScube Solutions Team</strong></p>
+                </div>
                 
-                <p>If you have any additional information or questions, please don't hesitate to contact us.</p>
-                
-                <p>Best regards,<br>
-                <strong>${process.env.COMPANY_NAME || "DataScube"} Team</strong></p>
-            </div>
-            
-            <div class="footer">
-                <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || "DataScube"}. All rights reserved.</p>
-                <p>${process.env.COMPANY_ADDRESS || "Your Company Address"}</p>
-                <p>Email: ${process.env.COMPANY_EMAIL || "info@datascube.com"} | Phone: ${process.env.COMPANY_PHONE || "+1 (555) 123-4567"}</p>
+                <!-- Footer -->
+                <div class="footer">
+                    <p class="footer-text"><strong>DataScube Solutions</strong></p>
+                    <p class="footer-text">Innovative Technology Solutions for Modern Businesses</p>
+                    <p class="footer-text" style="margin-top: 12px;">
+                        Email: <a href="mailto:datascubesolutions@gmail.com" class="footer-link">datascubesolutions@gmail.com</a><br>
+                        Phone: <a href="tel:+917300340014" class="footer-link">+91 73003 40014</a>
+                    </p>
+                    <div class="social-links">
+                        <a href="https://data-scube-solutions-git-k-detail-t-6278ab-data-scubes-projects.vercel.app">Website</a> |
+                        <a href="#">LinkedIn</a> |
+                        <a href="#">Twitter</a>
+                    </div>
+                    <div class="copyright">
+                        &copy; ${new Date().getFullYear()} DataScube Solutions. All rights reserved.
+                    </div>
+                </div>
             </div>
         </div>
     </body>
