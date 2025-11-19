@@ -38,6 +38,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
+    "@google-analytics/data": "^5.2.1",
     "axios": "^1.6.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",
@@ -54,7 +55,8 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.10",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

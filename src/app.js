@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -6,8 +8,18 @@ const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (prefer .env.local, fallback to .env)
+const ENV_FILES = [".env.local", ".env"];
+const appRoot = path.resolve(__dirname, "..");
+const envFilePath = ENV_FILES.map((file) => path.join(appRoot, file)).find((filePath) =>
+  fs.existsSync(filePath)
+);
+
+if (envFilePath) {
+  dotenv.config({ path: envFilePath });
+} else {
+  dotenv.config();
+}
 
 // Import routes
 const inquiryRoutes = require("./routes/inquiryRoutes");

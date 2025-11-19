@@ -8,6 +8,7 @@ logs/
 # .env.local
 # .env.production
 # .env.staging
+src/utils/google-analytics/key.json
 
 # # Logs
 # logs/*.log

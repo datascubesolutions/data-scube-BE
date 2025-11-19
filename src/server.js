@@ -16,6 +16,7 @@ process.on("unhandledRejection", (reason, promise) => {
 const app = require("./app");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
+const { initializeGoogleAnalyticsWebsocket } = require("./modules/googleAnalytics");
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -42,6 +43,17 @@ try {
     console.error("Server error:", error);
     // Don't exit - try to recover
   });
+
+  try {
+    initializeGoogleAnalyticsWebsocket({ server });
+  } catch (error) {
+    logger.error(
+      JSON.stringify({
+        message: "Failed to initialize Google Analytics websocket server",
+        error: error.message,
+      })
+    );
+  }
 } catch (error) {
   console.error("Failed to start server:", error);
   process.exit(1);
