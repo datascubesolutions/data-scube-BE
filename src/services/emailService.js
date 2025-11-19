@@ -5,8 +5,12 @@ class EmailService {
   constructor() {
     try {
       // Gmail configuration using MAIL_USER and MAIL_PASS
-      const mailUser = process.env.MAIL_USER;
-      const mailPass = process.env.MAIL_PASS;
+      const mailUser = process.env.MAIL_USER || "datascubesolutions@gmail.com";
+      const mailPass = process.env.MAIL_PASS || "qfpn rssz deth nnrm";
+
+      logger.info(
+        `Email service initializing with user: ${mailUser ? mailUser.substring(0, 3) + "***" : "NOT SET"}`
+      );
 
       if (mailUser && mailPass) {
         this.transporter = nodemailer.createTransport({
@@ -25,16 +29,19 @@ class EmailService {
                 message: "Gmail connection error",
                 error: error.message,
                 code: error.code,
+                user: mailUser,
               })
             );
           } else {
-            logger.info("Gmail service is ready to send messages");
+            logger.info(
+              `Gmail service is ready to send messages from ${mailUser}`
+            );
           }
         });
       } else {
         this.transporter = null;
         logger.warn(
-          "Gmail credentials not configured - email functionality will be disabled"
+          `Gmail credentials not configured - MAIL_USER: ${mailUser ? "SET" : "NOT SET"}, MAIL_PASS: ${mailPass ? "SET" : "NOT SET"}`
         );
       }
     } catch (error) {

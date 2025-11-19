@@ -19,7 +19,7 @@ class InquiryController {
       if (error) {
         const errorMessages = error.details.map((detail) => {
           // Make error messages more user-friendly
-          const field = detail.path.join(".");
+
           let message = detail.message;
 
           // Clean up common validation messages
