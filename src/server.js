@@ -16,7 +16,9 @@ process.on("unhandledRejection", (reason, promise) => {
 const app = require("./app");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
-const { initializeGoogleAnalyticsWebsocket } = require("./modules/googleAnalytics");
+const {
+  initializeGoogleAnalyticsWebsocket,
+} = require("./modules/googleAnalytics");
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -72,12 +74,16 @@ if (MONGODB_URI) {
     })
     .catch((error) => {
       console.error("❌ DB Connection Failed:", error.message);
-      console.error("⚠️  Server will continue running but database operations will fail");
-      logger.error(JSON.stringify({ 
-        message: "MongoDB connection error", 
-        error: error.message, 
-        code: error.code 
-      }));
+      console.error(
+        "⚠️  Server will continue running but database operations will fail"
+      );
+      logger.error(
+        JSON.stringify({
+          message: "MongoDB connection error",
+          error: error.message,
+          code: error.code,
+        })
+      );
       // Don't exit - let server run and retry connection
     });
 } else {
@@ -86,30 +92,32 @@ if (MONGODB_URI) {
 }
 
 // Graceful shutdown
-process.on("SIGTERM", () => {
+process.on("SIGTERM", async () => {
   logger.info("SIGTERM received, shutting down gracefully");
-  server.close(() => {
+  server.close(async () => {
     if (mongoose.connection.readyState === 1) {
-      mongoose.connection.close(false, () => {
+      try {
+        await mongoose.connection.close();
         logger.info("MongoDB connection closed");
-        process.exit(0);
-      });
-    } else {
-      process.exit(0);
+      } catch (error) {
+        logger.error(`Error closing MongoDB connection: ${error.message}`);
+      }
     }
+    process.exit(0);
   });
 });
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
   logger.info("SIGINT received, shutting down gracefully");
-  server.close(() => {
+  server.close(async () => {
     if (mongoose.connection.readyState === 1) {
-      mongoose.connection.close(false, () => {
+      try {
+        await mongoose.connection.close();
         logger.info("MongoDB connection closed");
-        process.exit(0);
-      });
-    } else {
-      process.exit(0);
+      } catch (error) {
+        logger.error(`Error closing MongoDB connection: ${error.message}`);
+      }
     }
+    process.exit(0);
   });
 });
