@@ -4,45 +4,37 @@ const logger = require("../utils/logger");
 class EmailService {
   constructor() {
     try {
-      // Only create transporter if SMTP is configured
-      // Use MAIL_USER and MAIL_PASS as primary, fallback to SMTP_USER and SMTP_PASS
-      const mailUser = process.env.MAIL_USER || process.env.SMTP_USER;
-      const mailPass = process.env.MAIL_PASS || process.env.SMTP_PASS;
+      // Gmail configuration using MAIL_USER and MAIL_PASS
+      const mailUser = process.env.MAIL_USER;
+      const mailPass = process.env.MAIL_PASS;
 
-      if (process.env.SMTP_HOST && mailUser && mailPass) {
+      if (mailUser && mailPass) {
         this.transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === "true",
+          service: "gmail",
           auth: {
             user: mailUser,
             pass: mailPass,
           },
         });
 
-        // Verify connection configuration (non-blocking, with error handling)
-        try {
-          this.transporter.verify((error, _success) => {
-            if (error) {
-              logger.error(
-                JSON.stringify({
-                  message: "SMTP connection error",
-                  error: error.message,
-                  code: error.code,
-                })
-              );
-            } else {
-              logger.info("SMTP server is ready to take our messages");
-            }
-          });
-        } catch (verifyError) {
-          // If verification fails, continue anyway
-          logger.warn("SMTP verification failed, but service will continue");
-        }
+        // Verify connection configuration
+        this.transporter.verify((error, _success) => {
+          if (error) {
+            logger.error(
+              JSON.stringify({
+                message: "Gmail connection error",
+                error: error.message,
+                code: error.code,
+              })
+            );
+          } else {
+            logger.info("Gmail service is ready to send messages");
+          }
+        });
       } else {
         this.transporter = null;
         logger.warn(
-          "SMTP not configured - email functionality will be disabled"
+          "Gmail credentials not configured - email functionality will be disabled"
         );
       }
     } catch (error) {
@@ -65,8 +57,7 @@ class EmailService {
     }
 
     try {
-      const fromEmail =
-        process.env.SMTP_FROM || process.env.MAIL_USER || process.env.SMTP_USER;
+      const fromEmail = process.env.MAIL_USER;
       const mailOptions = {
         from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
         to: inquiry.email,
@@ -107,8 +98,7 @@ class EmailService {
         return null;
       }
 
-      const fromEmail =
-        process.env.SMTP_FROM || process.env.MAIL_USER || process.env.SMTP_USER;
+      const fromEmail = process.env.MAIL_USER;
       const mailOptions = {
         from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
         to: adminEmail,
