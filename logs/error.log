@@ -28,3 +28,4 @@
 {"level":"error","message":"{\"message\":\"Failed to fetch Google Analytics realtime data\",\"error\":\"3 INVALID_ARGUMENT: \",\"code\":3}","service":"datascube-api","timestamp":"2025-11-19 18:18:25"}
 {"level":"error","message":"{\"message\":\"Google Analytics realtime report failed\",\"error\":\"3 INVALID_ARGUMENT: \",\"code\":3}","service":"datascube-api","timestamp":"2025-11-19 18:18:35"}
 {"level":"error","message":"{\"message\":\"Failed to fetch Google Analytics realtime data\",\"error\":\"3 INVALID_ARGUMENT: \",\"code\":3}","service":"datascube-api","timestamp":"2025-11-19 18:18:35"}
+{"level":"error","message":"{\"message\":\"SMTP connection error\",\"error\":\"Connection closed unexpectedly\",\"code\":\"ECONNECTION\"}","service":"datascube-api","timestamp":"2025-11-19 18:35:33"}

@@ -13,6 +13,56 @@ const EVENTS = {
   ERROR: "ga/realtime/error",
 };
 
+const coerceNameList = (value) => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const normalized = value
+    .map((item) => {
+      if (typeof item === "string") {
+        return item.trim();
+      }
+      if (item && typeof item.name === "string") {
+        return item.name.trim();
+      }
+      return undefined;
+    })
+    .filter((entry) => Boolean(entry));
+
+  return normalized.length ? normalized : undefined;
+};
+
+const normalizeAnalyticsPayload = (payload = {}) => {
+  const metrics =
+    coerceNameList(payload.metrics) ||
+    coerceNameList(payload.metricNames) ||
+    coerceNameList(payload.gaMetrics) ||
+    coerceNameList(payload.gaMetricNames);
+
+  const dimensions =
+    coerceNameList(payload.dimensions) ||
+    coerceNameList(payload.dimensionNames) ||
+    coerceNameList(payload.gaDimensions) ||
+    coerceNameList(payload.gaDimensionNames);
+
+  const normalizedPayload = { ...payload };
+
+  if (metrics) {
+    normalizedPayload.metrics = metrics;
+  } else {
+    delete normalizedPayload.metrics;
+  }
+
+  if (dimensions) {
+    normalizedPayload.dimensions = dimensions;
+  } else {
+    delete normalizedPayload.dimensions;
+  }
+
+  return normalizedPayload;
+};
+
 const makeGoogleAnalyticsWebsocketController = ({
   getRealtimeAnalyticsUseCase,
   logger,
@@ -54,8 +104,9 @@ const makeGoogleAnalyticsWebsocketController = ({
   };
 
   const handleFetch = async (socket, payload = {}) => {
+    const normalizedPayload = normalizeAnalyticsPayload(payload);
     try {
-      const data = await getRealtimeAnalyticsUseCase(payload);
+      const data = await getRealtimeAnalyticsUseCase(normalizedPayload);
       safeSend(socket, { event: EVENTS.DATA, data });
     } catch (error) {
       safeSend(socket, {
@@ -72,6 +123,8 @@ const makeGoogleAnalyticsWebsocketController = ({
   const handleSubscription = (socket, payload = {}) => {
     clearSubscription(socket);
 
+    const normalizedPayload = normalizeAnalyticsPayload(payload);
+
     const intervalMs = Math.max(
       MIN_INTERVAL_MS,
       Math.min(
@@ -83,17 +136,17 @@ const makeGoogleAnalyticsWebsocketController = ({
     );
 
     const timerId = setInterval(() => {
-      handleFetch(socket, payload);
+      handleFetch(socket, normalizedPayload);
     }, intervalMs);
 
-    subscriptions.set(socket, { timerId, payload, intervalMs });
+    subscriptions.set(socket, { timerId, payload: normalizedPayload, intervalMs });
 
     safeSend(socket, {
       event: EVENTS.SUBSCRIBED,
       data: { intervalMs },
     });
 
-    handleFetch(socket, payload);
+    handleFetch(socket, normalizedPayload);
   };
 
   const handleMessage = (socket, rawMessage) => {
