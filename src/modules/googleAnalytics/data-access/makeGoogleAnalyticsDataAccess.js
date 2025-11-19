@@ -9,15 +9,41 @@ const makeGoogleAnalyticsDataAccess = ({ logger }) => {
     );
   }
 
-  const keyFilePath = path.resolve(
-    __dirname,
-    "../../..",
-    "utils",
-    "google-analytics",
-    "key.json"
-  );
+  const resolveKeyFilePath = () => {
+    const customPath = process.env.GA_SERVICE_ACCOUNT_KEY_PATH;
+    if (customPath) {
+      return path.isAbsolute(customPath)
+        ? customPath
+        : path.resolve(process.cwd(), customPath);
+    }
+
+    const candidatePaths = [
+      path.resolve(
+        __dirname,
+        "../../..",
+        "utils",
+        "google-analytics",
+        "key.json"
+      ),
+      path.resolve(process.cwd(), "src", "utils", "google-analytics", "key.json"),
+      path.resolve(process.cwd(), "key.json"),
+    ];
+
+    const existingPath = candidatePaths.find((candidate) => fs.existsSync(candidate));
+
+    return existingPath || candidatePaths[0];
+  };
+
+  let cachedKeyFilePath;
+  const getKeyFilePath = () => {
+    if (!cachedKeyFilePath) {
+      cachedKeyFilePath = resolveKeyFilePath();
+    }
+    return cachedKeyFilePath;
+  };
 
   const writeKeyFileFromEnv = ({ encoded, raw }) => {
+    const keyFilePath = getKeyFilePath();
     try {
       const fileContents = encoded
         ? Buffer.from(encoded, "base64").toString("utf-8")
@@ -55,8 +81,10 @@ const makeGoogleAnalyticsDataAccess = ({ logger }) => {
   };
 
   const ensureKeyFile = () => {
+    const keyFilePath = getKeyFilePath();
+
     if (fs.existsSync(keyFilePath)) {
-      return;
+      return keyFilePath;
     }
 
     const encodedKey = process.env.GA_SERVICE_ACCOUNT_KEY_B64;
@@ -64,7 +92,7 @@ const makeGoogleAnalyticsDataAccess = ({ logger }) => {
 
     if (encodedKey || rawKey) {
       writeKeyFileFromEnv({ encoded: encodedKey, raw: rawKey });
-      return;
+      return keyFilePath;
     }
 
     logger.error(
@@ -88,6 +116,7 @@ const makeGoogleAnalyticsDataAccess = ({ logger }) => {
 
     ensureKeyFile();
     try {
+      const keyFilePath = getKeyFilePath();
       const fileContents = fs.readFileSync(keyFilePath, "utf-8");
       cachedCredentials = JSON.parse(fileContents);
       return cachedCredentials;
