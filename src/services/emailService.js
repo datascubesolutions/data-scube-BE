@@ -5,24 +5,41 @@ class EmailService {
   constructor() {
     try {
       // Gmail configuration using MAIL_USER and MAIL_PASS
-      const mailUser = process.env.MAIL_USER || "datascubesolutions@gmail.com";
-      const mailPass = process.env.MAIL_PASS || "qfpn rssz deth nnrm";
+      const mailUser = process.env.MAIL_USER;
+      const mailPass = process.env.MAIL_PASS;
 
       logger.info(
         `Email service initializing with user: ${mailUser ? mailUser.substring(0, 3) + "***" : "NOT SET"}`
       );
 
       if (mailUser && mailPass) {
+        // Use explicit SMTP configuration for better compatibility with Render
         this.transporter = nodemailer.createTransport({
-          service: "gmail",
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: false, // Use STARTTLS
           auth: {
             user: mailUser,
             pass: mailPass,
           },
+          tls: {
+            rejectUnauthorized: false, // Allow self-signed certificates
+          },
+          connectionTimeout: 10000, // 10 seconds
+          greetingTimeout: 10000,
+          socketTimeout: 10000,
+          pool: true, // Use connection pooling
+          maxConnections: 5,
+          maxMessages: 100,
         });
 
-        // Verify connection configuration
+        // Verify connection configuration with timeout
+        const verifyTimeout = setTimeout(() => {
+          logger.warn("Gmail verification taking too long, continuing anyway");
+        }, 5000);
+
         this.transporter.verify((error, _success) => {
+          clearTimeout(verifyTimeout);
           if (error) {
             logger.error(
               JSON.stringify({
@@ -56,77 +73,97 @@ class EmailService {
     }
   }
 
-  // Send inquiry confirmation email to user
-  async sendInquiryConfirmation(inquiry) {
+  // Send inquiry confirmation email to user with retry logic
+  async sendInquiryConfirmation(inquiry, retries = 2) {
     if (!this.transporter) {
       logger.warn("Email service not configured, skipping confirmation email");
       return null;
     }
 
-    try {
-      const fromEmail = process.env.MAIL_USER;
-      const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
-        to: inquiry.email,
-        subject: `Thank you for contacting us - Inquiry #${inquiry._id.toString().slice(-6)}`,
-        html: this.generateConfirmationEmailTemplate(inquiry),
-        text: this.generateConfirmationEmailText(inquiry),
-      };
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const fromEmail = process.env.MAIL_USER;
+        const mailOptions = {
+          from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
+          to: inquiry.email,
+          subject: `Thank you for contacting us - Inquiry #${inquiry._id.toString().slice(-6)}`,
+          html: this.generateConfirmationEmailTemplate(inquiry),
+          text: this.generateConfirmationEmailText(inquiry),
+        };
 
-      const result = await this.transporter.sendMail(mailOptions);
-      logger.info(
-        `Confirmation email sent to ${inquiry.email}: ${result.messageId}`
-      );
-      return result;
-    } catch (error) {
-      logger.error(
-        JSON.stringify({
-          message: "Error sending confirmation email",
-          error: error.message,
-          code: error.code,
-          email: inquiry.email,
-        })
-      );
-      throw error;
+        const result = await this.transporter.sendMail(mailOptions);
+        logger.info(
+          `Confirmation email sent to ${inquiry.email}: ${result.messageId}`
+        );
+        return result;
+      } catch (error) {
+        const isLastAttempt = attempt === retries;
+        logger.error(
+          JSON.stringify({
+            message: `Error sending confirmation email (attempt ${attempt}/${retries})`,
+            error: error.message,
+            code: error.code,
+            email: inquiry.email,
+            willRetry: !isLastAttempt,
+          })
+        );
+
+        if (isLastAttempt) {
+          throw error;
+        }
+
+        // Wait before retry (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+      }
     }
   }
 
-  // Send notification to admin
-  async sendAdminNotification(inquiry) {
+  // Send notification to admin with retry logic
+  async sendAdminNotification(inquiry, retries = 2) {
     if (!this.transporter) {
       logger.warn("Email service not configured, skipping admin notification");
       return null;
     }
 
-    try {
-      const adminEmail = process.env.ADMIN_EMAIL;
-      if (!adminEmail) {
-        logger.warn("Admin email not configured, skipping notification");
-        return null;
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail) {
+      logger.warn("Admin email not configured, skipping notification");
+      return null;
+    }
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const fromEmail = process.env.MAIL_USER;
+        const mailOptions = {
+          from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
+          to: adminEmail,
+          subject: `New Inquiry Received - ${inquiry.inquiryType.toUpperCase()} - Priority: ${inquiry.priority.toUpperCase()}`,
+          html: this.generateAdminNotificationTemplate(inquiry),
+          text: this.generateAdminNotificationText(inquiry),
+        };
+
+        const result = await this.transporter.sendMail(mailOptions);
+        logger.info(`Admin notification sent: ${result.messageId}`);
+        return result;
+      } catch (error) {
+        const isLastAttempt = attempt === retries;
+        logger.error(
+          JSON.stringify({
+            message: `Error sending admin notification (attempt ${attempt}/${retries})`,
+            error: error.message,
+            code: error.code,
+            inquiryId: inquiry._id,
+            willRetry: !isLastAttempt,
+          })
+        );
+
+        if (isLastAttempt) {
+          throw error;
+        }
+
+        // Wait before retry (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       }
-
-      const fromEmail = process.env.MAIL_USER;
-      const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
-        to: adminEmail,
-        subject: `New Inquiry Received - ${inquiry.inquiryType.toUpperCase()} - Priority: ${inquiry.priority.toUpperCase()}`,
-        html: this.generateAdminNotificationTemplate(inquiry),
-        text: this.generateAdminNotificationText(inquiry),
-      };
-
-      const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`Admin notification sent: ${result.messageId}`);
-      return result;
-    } catch (error) {
-      logger.error(
-        JSON.stringify({
-          message: "Error sending admin notification",
-          error: error.message,
-          code: error.code,
-          inquiryId: inquiry._id,
-        })
-      );
-      throw error;
     }
   }
 

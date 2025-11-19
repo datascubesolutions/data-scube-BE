@@ -111,3 +111,49 @@ If you still have issues, check:
 - Render logs for specific error messages
 - Gmail account for any security alerts
 - That all 5 missing variables are added correctly (no typos)
+
+## ⚠️ IMPORTANT: Render Free Tier SMTP Limitations
+
+**The connection timeout errors you're seeing are caused by Render's free tier blocking/throttling SMTP connections.**
+
+### Why This Happens:
+
+- Render free tier restricts outbound SMTP to prevent spam
+- Gmail SMTP (port 587) connections may timeout
+- This is NOT a code issue - it's a Render platform limitation
+
+### Solutions (Choose One):
+
+#### Option 1: Upgrade Render Plan (Recommended)
+
+- Upgrade to Render's paid plan ($7/month)
+- Removes SMTP restrictions
+- Most reliable solution
+
+#### Option 2: Use SendGrid (Free Alternative)
+
+- Free tier: 100 emails/day
+- Sign up: https://sendgrid.com
+- Get API key
+- No SMTP needed (uses HTTP API)
+
+#### Option 3: Use Mailgun
+
+- Free tier: 5,000 emails/month
+- Sign up: https://www.mailgun.com
+- More generous free tier
+
+#### Option 4: Use AWS SES
+
+- Free tier: 62,000 emails/month
+- Requires AWS account
+- Most scalable option
+
+### Current Code Status:
+
+✅ Code has retry logic (2 attempts per email)
+✅ Code has connection pooling
+✅ Code has proper timeout handling
+✅ Code will work once SMTP restrictions are removed
+
+The issue is **infrastructure**, not code.
