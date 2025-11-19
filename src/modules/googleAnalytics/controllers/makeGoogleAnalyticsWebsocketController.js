@@ -33,7 +33,7 @@ const coerceNameList = (value) => {
   return normalized.length ? normalized : undefined;
 };
 
-const normalizeAnalyticsPayload = (payload = {}) => {
+const normalizeAnalyticsPayload = (payload = {}, logger) => {
   const metrics =
     coerceNameList(payload.metrics) ||
     coerceNameList(payload.metricNames) ||
@@ -48,16 +48,28 @@ const normalizeAnalyticsPayload = (payload = {}) => {
 
   const normalizedPayload = { ...payload };
 
-  if (metrics) {
+  if (metrics && metrics.length > 0) {
     normalizedPayload.metrics = metrics;
   } else {
     delete normalizedPayload.metrics;
   }
 
-  if (dimensions) {
+  if (dimensions && dimensions.length > 0) {
     normalizedPayload.dimensions = dimensions;
   } else {
     delete normalizedPayload.dimensions;
+  }
+
+  if (logger && process.env.NODE_ENV !== "production") {
+    logger.info(
+      JSON.stringify({
+        message: "Normalized GA payload",
+        originalMetrics: payload.metrics || payload.gaMetrics,
+        normalizedMetrics: normalizedPayload.metrics,
+        originalDimensions: payload.dimensions || payload.gaDimensions,
+        normalizedDimensions: normalizedPayload.dimensions,
+      })
+    );
   }
 
   return normalizedPayload;
@@ -104,7 +116,7 @@ const makeGoogleAnalyticsWebsocketController = ({
   };
 
   const handleFetch = async (socket, payload = {}) => {
-    const normalizedPayload = normalizeAnalyticsPayload(payload);
+    const normalizedPayload = normalizeAnalyticsPayload(payload, logger);
     try {
       const data = await getRealtimeAnalyticsUseCase(normalizedPayload);
       safeSend(socket, { event: EVENTS.DATA, data });
@@ -123,7 +135,7 @@ const makeGoogleAnalyticsWebsocketController = ({
   const handleSubscription = (socket, payload = {}) => {
     clearSubscription(socket);
 
-    const normalizedPayload = normalizeAnalyticsPayload(payload);
+    const normalizedPayload = normalizeAnalyticsPayload(payload, logger);
 
     const intervalMs = Math.max(
       MIN_INTERVAL_MS,

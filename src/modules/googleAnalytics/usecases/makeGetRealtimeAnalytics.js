@@ -103,6 +103,24 @@ const makeGetRealtimeAnalyticsUseCase = ({
     const limit = coerceLimit(params.limit);
     const orderBys = normalizeOrderBys(params.orderBys);
 
+    if (!metrics || metrics.length === 0) {
+      logger.error(
+        JSON.stringify({
+          message: "No valid metrics provided, using defaults",
+          receivedMetrics: params.metrics,
+        })
+      );
+    }
+
+    if (!dimensions || dimensions.length === 0) {
+      logger.error(
+        JSON.stringify({
+          message: "No valid dimensions provided, using defaults",
+          receivedDimensions: params.dimensions,
+        })
+      );
+    }
+
     try {
       const report = await googleAnalyticsDataAccess.runRealtimeReport({
         propertyId,
