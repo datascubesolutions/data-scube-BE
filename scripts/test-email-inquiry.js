@@ -8,8 +8,8 @@ async function testInquiryEmail() {
   const API_URL = process.env.API_URL || "http://localhost:3000";
 
   const inquiryData = {
-    name: "ritika",
-    email: "createwithritika@gmail.com",
+    name: "Nikul Kumar",
+    email: "nikulkumar730@gmail.com",
     phone: "+1234567890",
     company: "Tech Solutions Inc",
     subject: "Product Integration Inquiry",
@@ -38,15 +38,15 @@ async function testInquiryEmail() {
 
     console.log("\n📧 Email Status:");
     console.log(
-      "- Confirmation email should be sent to: createwithritika@gmail.com"
+      "- Confirmation email should be sent to: nikulkumar730@gmail.com"
     );
     console.log(
-      "- Admin notification should be sent to: apptestnodemailer730@gmail.com"
+      "- Admin notification should be sent to: datascubesolutions@gmail.com"
     );
 
     console.log("\n💡 Check the following:");
     console.log(
-      "1. Check createwithritika@gmail.com inbox for confirmation email"
+      "1. Check nikulkumar730@gmail.com inbox for confirmation email"
     );
     console.log("2. Check spam/junk folder if not in inbox");
     console.log("3. Check server logs for email sending status");

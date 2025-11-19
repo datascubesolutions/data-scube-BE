@@ -5,18 +5,18 @@ class EmailService {
   constructor() {
     try {
       // Only create transporter if SMTP is configured
-      if (
-        process.env.SMTP_HOST &&
-        process.env.SMTP_USER &&
-        process.env.SMTP_PASS
-      ) {
+      // Use MAIL_USER and MAIL_PASS as primary, fallback to SMTP_USER and SMTP_PASS
+      const mailUser = process.env.MAIL_USER || process.env.SMTP_USER;
+      const mailPass = process.env.MAIL_PASS || process.env.SMTP_PASS;
+
+      if (process.env.SMTP_HOST && mailUser && mailPass) {
         this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
           port: parseInt(process.env.SMTP_PORT) || 587,
           secure: process.env.SMTP_SECURE === "true",
           auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: mailUser,
+            pass: mailPass,
           },
         });
 
@@ -65,8 +65,10 @@ class EmailService {
     }
 
     try {
+      const fromEmail =
+        process.env.SMTP_FROM || process.env.MAIL_USER || process.env.SMTP_USER;
       const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
         to: inquiry.email,
         subject: `Thank you for contacting us - Inquiry #${inquiry._id.toString().slice(-6)}`,
         html: this.generateConfirmationEmailTemplate(inquiry),
@@ -105,8 +107,10 @@ class EmailService {
         return null;
       }
 
+      const fromEmail =
+        process.env.SMTP_FROM || process.env.MAIL_USER || process.env.SMTP_USER;
       const mailOptions = {
-        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"${process.env.COMPANY_NAME || "DataScube"}" <${fromEmail}>`,
         to: adminEmail,
         subject: `New Inquiry Received - ${inquiry.inquiryType.toUpperCase()} - Priority: ${inquiry.priority.toUpperCase()}`,
         html: this.generateAdminNotificationTemplate(inquiry),
